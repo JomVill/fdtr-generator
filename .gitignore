@@ -1,0 +1,33 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual envs
+venv/
+.venv/
+env/
+fdtr_venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated files
+*.xlsx
+/tmp/
+
+# IDE / editor
+.claude/
+.vscode/
+.idea/
+*.swp
+*.swo

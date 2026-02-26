@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}FDTR Generator{% endblock %} — MSU-IIT</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <span class="header-logo">📋</span>
+      <div>
+        <div class="header-title">FDTR Generator</div>
+        <div class="header-sub">MSU-Iligan Institute of Technology</div>
+      </div>
+    </div>
+    <nav class="header-nav">
+      <a href="{{ url_for('setup') }}"
+         class="nav-link {% if request.endpoint == 'setup' %}active{% endif %}">
+        ① Setup
+      </a>
+      <a href="{{ url_for('generate') }}"
+         class="nav-link {% if request.endpoint in ('generate', 'preview') %}active{% endif %}">
+        ② Generate
+      </a>
+      <a href="{{ url_for('reset') }}" class="nav-link nav-reset" title="Clear session">
+        ↺ Reset
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main class="main-content">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <p>Faculty Daily Time Record Generator &mdash; MSU-IIT &mdash; No data is stored on the server.</p>
+</footer>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

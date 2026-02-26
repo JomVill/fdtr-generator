@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Generate FDTR{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1>Step 2 &mdash; Generate Monthly FDTR</h1>
+    <p class="page-desc">
+      Generating for <strong>{{ faculty_name }}</strong> &mdash; {{ department }}.
+      <a href="{{ url_for('setup') }}" class="link-edit">← Edit profile &amp; schedule</a>
+    </p>
+  </div>
+
+  <form action="{{ url_for('preview') }}" method="POST" id="generate-form">
+
+    <!-- ── Month / Year ───────────────────────────────────────────────────── -->
+    <section class="card">
+      <h2 class="card-title">📅 Month &amp; Year</h2>
+      <div class="form-row">
+        <div class="form-group form-group-sm">
+          <label for="month">Month</label>
+          <select id="month" name="month" class="form-input">
+            {% for m_num, m_name in month_names %}
+            <option value="{{ m_num }}" {% if m_num == current_month %}selected{% endif %}>
+              {{ m_name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group form-group-sm">
+          <label for="year">Year</label>
+          <select id="year" name="year" class="form-input">
+            {% for y in years %}
+            <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Holidays ───────────────────────────────────────────────────────── -->
+    <section class="card">
+      <h2 class="card-title">🏖 Holidays</h2>
+      <p class="card-desc">Public holidays and special non-working days. Weekends are added automatically.</p>
+      <div id="holidays-container">
+        <!-- Default January holidays as example -->
+      </div>
+      <button type="button" class="btn-add-row" onclick="addRow('holidays')">
+        + Add Holiday
+      </button>
+    </section>
+
+    <!-- ── Leave Days ─────────────────────────────────────────────────────── -->
+    <section class="card">
+      <h2 class="card-title">🏥 Leave Days</h2>
+      <p class="card-desc">Individual days you are on leave. The label will appear as <em>"ON [TYPE]"</em>.</p>
+      <div id="leave-container">
+      </div>
+      <button type="button" class="btn-add-row" onclick="addRow('leave')">
+        + Add Leave Day
+      </button>
+    </section>
+
+    <!-- ── Travel ─────────────────────────────────────────────────────────── -->
+    <section class="card">
+      <h2 class="card-title">✈️ Official Travel</h2>
+      <p class="card-desc">Travel Authority (TA) periods. All days in the range will be marked <em>"ON TRAVEL, TA NO: …"</em>.</p>
+      <div id="travel-container">
+      </div>
+      <button type="button" class="btn-add-row" onclick="addRow('travel')">
+        + Add Travel Period
+      </button>
+    </section>
+
+    <!-- ── Class Suspension / Related Activities ──────────────────────── -->
+    <section class="card">
+      <h2 class="card-title">📋 Class Suspension / Related Activities</h2>
+      <p class="card-desc">
+        Days when classes are suspended but you still report for work.
+        Your regular schedule time slots will be recorded under <em>Related Activities</em> (H–J) for each date in the range.
+      </p>
+      <div id="related-container">
+      </div>
+      <button type="button" class="btn-add-row" onclick="addRow('related')">
+        + Add Suspension / Related Activity Period
+      </button>
+    </section>
+
+    <!-- ── Preview Button ───────────────────────────────────────────────── -->
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-lg btn-generate" id="generate-btn">
+        👁 Preview FDTR
+      </button>
+      <p class="form-hint center-hint">Review your FDTR before downloading — you can go back and edit if needed.</p>
+    </div>
+
+  </form>
+</div>
+
+<!-- Loading overlay (shown while Excel is being built) -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <p class="loading-text">Building preview… please wait</p>
+</div>
+
+<!-- Row templates (hidden) -->
+<template id="holiday-row-template">
+  <div class="dynamic-row">
+    <input type="date" name="holiday_date[]" class="form-input input-date" required/>
+    <input type="text" name="holiday_label[]" placeholder="Holiday name (e.g. RIZAL DAY)"
+           class="form-input input-label" required/>
+    <button type="button" class="btn-remove-row" onclick="removeRow(this)" title="Remove">✕</button>
+  </div>
+</template>
+
+<template id="leave-row-template">
+  <div class="dynamic-row">
+    <input type="date" name="leave_date[]" class="form-input input-date" required/>
+    <select name="leave_type[]" class="form-input input-select">
+      {% for lt in leave_types %}
+      <option value="{{ lt }}">{{ lt }}</option>
+      {% endfor %}
+    </select>
+    <button type="button" class="btn-remove-row" onclick="removeRow(this)" title="Remove">✕</button>
+  </div>
+</template>
+
+<template id="travel-row-template">
+  <div class="dynamic-row dynamic-row-travel">
+    <label class="inline-label">From</label>
+    <input type="date" name="travel_start[]" class="form-input input-date" required/>
+    <label class="inline-label">To</label>
+    <input type="date" name="travel_end[]" class="form-input input-date" required/>
+    <label class="inline-label">TA No.</label>
+    <input type="text" name="travel_ta[]" placeholder="e.g. 2026020070"
+           class="form-input input-ta" required/>
+    <button type="button" class="btn-remove-row" onclick="removeRow(this)" title="Remove">✕</button>
+  </div>
+</template>
+
+<template id="related-row-template">
+  <div class="dynamic-row">
+    <label class="inline-label">From</label>
+    <input type="date" name="related_start[]" class="form-input input-date" required/>
+    <label class="inline-label">To</label>
+    <input type="date" name="related_end[]" class="form-input input-date" required/>
+    <button type="button" class="btn-remove-row" onclick="removeRow(this)" title="Remove">✕</button>
+  </div>
+</template>
+{% endblock %}

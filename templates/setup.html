@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Setup — Faculty Info & Schedule{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1>Step 1 &mdash; Faculty Info &amp; Weekly Schedule</h1>
+    <p class="page-desc">Fill in your details and set your regular weekly class schedule. This is saved for the session and reused every month you generate.</p>
+  </div>
+
+  <form action="{{ url_for('save_setup') }}" method="POST" id="setup-form">
+
+    <!-- ── Faculty Information ─────────────────────────────────────────── -->
+    <section class="card">
+      <h2 class="card-title">👤 Faculty Information</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="faculty_name">Full Name (with suffix/degree)</label>
+          <input type="text" id="faculty_name" name="faculty_name"
+                 value="{{ faculty.faculty_name }}"
+                 placeholder="e.g. JUAN DELA CRUZ, MSc."
+                 required class="form-input"/>
+          <span class="form-hint">Will appear exactly as typed in the FDTR header</span>
+        </div>
+        <div class="form-group">
+          <label for="designation">Designation / Position</label>
+          <input type="text" id="designation" name="designation"
+                 value="{{ faculty.designation }}"
+                 placeholder="e.g. Assistant Professor I"
+                 required class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label for="department">Department / Unit</label>
+          <input type="text" id="department" name="department"
+                 value="{{ faculty.department }}"
+                 placeholder="e.g. COMPUTER APPLICATIONS"
+                 required class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label for="dept_head">Head of Department / Unit (with degree)</label>
+          <input type="text" id="dept_head" name="dept_head"
+                 value="{{ faculty.dept_head }}"
+                 placeholder="e.g. MARIA SANTOS, PhD."
+                 required class="form-input"/>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Weekly Schedule ───────────────────────────────────────────────── -->
+    <section class="card">
+      <h2 class="card-title">🗓 Weekly Schedule</h2>
+      <p class="card-desc">Add your regular time slots for each weekday. Use <strong>+ Add Slot</strong> to add multiple blocks per day (e.g. morning admin + evening class).</p>
+
+      {% set cat_map = {
+        'class':              'Class',
+        'consultation':       'Consultation',
+        'related_activities': 'Related Activities',
+        'others':             'Others (Adm., R&E)'
+      } %}
+
+      {% for day in weekdays %}
+      {% set day_key = day.lower() %}
+      <div class="day-block">
+        <div class="day-label">{{ day }}</div>
+        <div class="slots-container" id="slots-{{ day_key }}">
+          {% for slot in schedule.get(day_key, []) %}
+          <div class="slot-row" data-day="{{ day_key }}">
+            <input type="time" name="schedule_{{ day_key }}_time_in[]"
+                   value="{{ slot.time_in }}" class="slot-input" required/>
+            <span class="slot-sep">–</span>
+            <input type="time" name="schedule_{{ day_key }}_time_out[]"
+                   value="{{ slot.time_out }}" class="slot-input" required/>
+            <select name="schedule_{{ day_key }}_category[]" class="slot-select">
+              {% for cat_val, cat_lbl in categories %}
+              <option value="{{ cat_val }}"
+                {% if slot.category == cat_val %}selected{% endif %}>
+                {{ cat_lbl }}
+              </option>
+              {% endfor %}
+            </select>
+            <input type="text" name="schedule_{{ day_key }}_label[]"
+                   value="{{ slot.label }}"
+                   placeholder="Label (optional)"
+                   class="slot-label-input"/>
+            <button type="button" class="btn-remove-slot" onclick="removeSlot(this)" title="Remove">✕</button>
+          </div>
+          {% endfor %}
+        </div>
+        <button type="button" class="btn-add-slot" onclick="addSlot('{{ day_key }}')">
+          + Add Slot
+        </button>
+      </div>
+      {% endfor %}
+    </section>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-lg">
+        Save &amp; Continue to Generate →
+      </button>
+    </div>
+
+  </form>
+</div>
+
+<!-- Slot template (hidden) -->
+<template id="slot-template">
+  <div class="slot-row">
+    <input type="time" name="schedule_DAY_time_in[]" class="slot-input" required/>
+    <span class="slot-sep">–</span>
+    <input type="time" name="schedule_DAY_time_out[]" class="slot-input" required/>
+    <select name="schedule_DAY_category[]" class="slot-select">
+      {% for cat_val, cat_lbl in categories %}
+      <option value="{{ cat_val }}">{{ cat_lbl }}</option>
+      {% endfor %}
+    </select>
+    <input type="text" name="schedule_DAY_label[]"
+           placeholder="Label (optional)" class="slot-label-input"/>
+    <button type="button" class="btn-remove-slot" onclick="removeSlot(this)" title="Remove">✕</button>
+  </div>
+</template>
+{% endblock %}
