@@ -451,11 +451,9 @@ main { flex: 1; padding: 2rem 1.5rem 3rem; }
   border-left: 1px solid rgba(255,255,255,.12);
 }
 
-/* Scrollable body */
+/* Calendar body — full height, no inner scroll (page scrolls naturally) */
 .cal-scroll-body {
   display: flex;
-  overflow-y: auto;
-  max-height: 480px;
 }
 
 /* Time axis — pointer-events:none prevents clicking the axis from creating blocks */
@@ -846,7 +844,6 @@ main { flex: 1; padding: 2rem 1.5rem 3rem; }
   .form-group-sm { max-width: 100%; }
   .dynamic-row { flex-direction: column; align-items: stretch; }
   .input-date, .input-time, .input-ta { width: 100%; }
-  .cal-scroll-body { max-height: 360px; }
   .preview-actions { flex-direction: column; align-items: stretch; }
   .preview-actions .btn { justify-content: center; }
   .preview-title-block { order: -1; }

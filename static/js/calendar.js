@@ -11,8 +11,8 @@
   var CAL_START  = 6 * 60;   // 6:00 AM in minutes from midnight
   var CAL_END    = 22 * 60;  // 10:00 PM
   var TOTAL_MIN  = CAL_END - CAL_START;        // 960 min = 16 hours
-  var PX_PER_MIN = 1.0;                        // 1 px / minute → 60 px/hour
-  var TOTAL_H    = TOTAL_MIN * PX_PER_MIN;     // 960 px
+  var PX_PER_MIN = 0.75;                       // 0.75 px / minute → 45 px/hour
+  var TOTAL_H    = TOTAL_MIN * PX_PER_MIN;     // 720 px  — no inner scroll needed
   var SNAP       = 15;                         // snap to 15-min intervals
   var MIN_DUR    = 30;                         // minimum block duration (min)
 
@@ -235,7 +235,7 @@
     el.innerHTML =
       '<div class="cal-block-content">' +
         '<div class="cal-block-cat">'  + escHtml(cat.label + lbl) + '</div>' +
-        (dur >= 30 ? '<div class="cal-block-time">' + timeStr + '</div>' : '') +
+        (dur >= 45 ? '<div class="cal-block-time">' + timeStr + '</div>' : '') +
       '</div>' +
       '<div class="cal-block-resize"></div>';
 
@@ -496,8 +496,7 @@
 
     applyWeekendPref(outer);
 
-    // Scroll to 7 AM on load
-    scrollBody.scrollTop = minToY(7 * 60);
+    // No initial scroll — full calendar visible without scrolling
   }
 
   // ── Serialize to hidden input + localStorage ──────────────────────────────
