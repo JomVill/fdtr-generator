@@ -4,7 +4,8 @@
 {% block content %}
 <div class="page-container">
   <div class="page-header">
-    <h1>Step 2 &mdash; Generate Monthly FDTR</h1>
+    <div class="step-badge">Step 2 of 2</div>
+    <h1>Generate Monthly FDTR</h1>
     <p class="page-desc">
       Generating for <strong>{{ faculty_name }}</strong> &mdash; {{ department }}.
       <a href="{{ url_for('setup') }}" class="link-edit">← Edit profile &amp; schedule</a>
@@ -13,7 +14,14 @@
 
   <form action="{{ url_for('preview') }}" method="POST" id="generate-form">
 
-    <!-- ── Month / Year ───────────────────────────────────────────────────── -->
+    <!-- Hidden: faculty data (populated from localStorage by JS for session-resilience) -->
+    <input type="hidden" id="hf-faculty_name" name="hf_faculty_name" value="{{ faculty_name }}">
+    <input type="hidden" id="hf-designation"  name="hf_designation"  value="{{ designation }}">
+    <input type="hidden" id="hf-department"   name="hf_department"   value="{{ department }}">
+    <input type="hidden" id="hf-dept_head"    name="hf_dept_head"    value="{{ dept_head }}">
+    <input type="hidden" id="hf-schedule"     name="hf_schedule"     value="{{ schedule_json }}">
+
+    <!-- ── Month / Year ────────────────────────────────────────────────────── -->
     <section class="card">
       <h2 class="card-title">📅 Month &amp; Year</h2>
       <div class="form-row">
@@ -38,72 +46,69 @@
       </div>
     </section>
 
-    <!-- ── Holidays ───────────────────────────────────────────────────────── -->
-    <section class="card">
-      <h2 class="card-title">🏖 Holidays</h2>
-      <p class="card-desc">Public holidays and special non-working days. Weekends are added automatically.</p>
-      <div id="holidays-container">
-        <!-- Default January holidays as example -->
-      </div>
-      <button type="button" class="btn-add-row" onclick="addRow('holidays')">
-        + Add Holiday
-      </button>
-    </section>
-
-    <!-- ── Leave Days ─────────────────────────────────────────────────────── -->
-    <section class="card">
-      <h2 class="card-title">🏥 Leave Days</h2>
-      <p class="card-desc">Individual days you are on leave. The label will appear as <em>"ON [TYPE]"</em>.</p>
-      <div id="leave-container">
-      </div>
-      <button type="button" class="btn-add-row" onclick="addRow('leave')">
-        + Add Leave Day
-      </button>
-    </section>
-
-    <!-- ── Travel ─────────────────────────────────────────────────────────── -->
-    <section class="card">
-      <h2 class="card-title">✈️ Official Travel</h2>
-      <p class="card-desc">Travel Authority (TA) periods. All days in the range will be marked <em>"ON TRAVEL, TA NO: …"</em>.</p>
-      <div id="travel-container">
-      </div>
-      <button type="button" class="btn-add-row" onclick="addRow('travel')">
-        + Add Travel Period
-      </button>
-    </section>
-
-    <!-- ── Class Suspension / Related Activities ──────────────────────── -->
+    <!-- ── Class Suspension / Related Activities ───────────────────────────── -->
     <section class="card">
       <h2 class="card-title">📋 Class Suspension / Related Activities</h2>
       <p class="card-desc">
-        Days when classes are suspended but you still report for work.
-        Your regular schedule time slots will be recorded under <em>Related Activities</em> (H–J) for each date in the range.
+        Days when classes are suspended but you still report. Time slots will be recorded under
+        <em>Related Activities</em> (H–J). Optionally set custom time-in/out below — otherwise
+        your regular schedule is used.
       </p>
-      <div id="related-container">
-      </div>
+      <div id="related-container"></div>
       <button type="button" class="btn-add-row" onclick="addRow('related')">
         + Add Suspension / Related Activity Period
       </button>
     </section>
 
-    <!-- ── Preview Button ───────────────────────────────────────────────── -->
+    <!-- ── Leave Days ──────────────────────────────────────────────────────── -->
+    <section class="card">
+      <h2 class="card-title">🏥 Leave Days</h2>
+      <p class="card-desc">Individual days on leave. The label will appear as <em>"ON [TYPE]"</em>.</p>
+      <div id="leave-container"></div>
+      <button type="button" class="btn-add-row" onclick="addRow('leave')">
+        + Add Leave Day
+      </button>
+    </section>
+
+    <!-- ── Official Travel ─────────────────────────────────────────────────── -->
+    <section class="card">
+      <h2 class="card-title">✈️ Official Travel</h2>
+      <p class="card-desc">Travel Authority (TA) periods. All days in the range will be marked <em>"ON TRAVEL, TA NO: …"</em>.</p>
+      <div id="travel-container"></div>
+      <button type="button" class="btn-add-row" onclick="addRow('travel')">
+        + Add Travel Period
+      </button>
+    </section>
+
+    <!-- ── Holidays ────────────────────────────────────────────────────────── -->
+    <section class="card">
+      <h2 class="card-title">🏖 Holidays</h2>
+      <p class="card-desc">Public holidays and special non-working days. Weekends are added automatically.</p>
+      <div id="holidays-container"></div>
+      <button type="button" class="btn-add-row" onclick="addRow('holidays')">
+        + Add Holiday
+      </button>
+    </section>
+
+    <!-- ── Preview Button ─────────────────────────────────────────────────── -->
     <div class="form-actions">
       <button type="submit" class="btn btn-primary btn-lg btn-generate" id="generate-btn">
         👁 Preview FDTR
       </button>
-      <p class="form-hint center-hint">Review your FDTR before downloading — you can go back and edit if needed.</p>
+      <p class="form-hint center-hint">Review before downloading — you can go back and edit if needed.</p>
     </div>
 
   </form>
 </div>
 
-<!-- Loading overlay (shown while Excel is being built) -->
+<!-- Loading overlay -->
 <div class="loading-overlay" id="loading-overlay">
   <div class="spinner"></div>
   <p class="loading-text">Building preview… please wait</p>
 </div>
 
-<!-- Row templates (hidden) -->
+<!-- ── Row templates (hidden) ─────────────────────────────────────────────── -->
+
 <template id="holiday-row-template">
   <div class="dynamic-row">
     <input type="date" name="holiday_date[]" class="form-input input-date" required/>
@@ -126,7 +131,7 @@
 </template>
 
 <template id="travel-row-template">
-  <div class="dynamic-row dynamic-row-travel">
+  <div class="dynamic-row">
     <label class="inline-label">From</label>
     <input type="date" name="travel_start[]" class="form-input input-date" required/>
     <label class="inline-label">To</label>
@@ -143,7 +148,11 @@
     <label class="inline-label">From</label>
     <input type="date" name="related_start[]" class="form-input input-date" required/>
     <label class="inline-label">To</label>
-    <input type="date" name="related_end[]" class="form-input input-date" required/>
+    <input type="date" name="related_end[]"   class="form-input input-date" required/>
+    <label class="inline-label">Time</label>
+    <input type="time" name="related_time_in[]"  class="form-input input-time" title="Optional custom time-in"/>
+    <span class="slot-sep">–</span>
+    <input type="time" name="related_time_out[]" class="form-input input-time" title="Optional custom time-out"/>
     <button type="button" class="btn-remove-row" onclick="removeRow(this)" title="Remove">✕</button>
   </div>
 </template>

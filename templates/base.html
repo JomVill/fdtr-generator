@@ -4,43 +4,52 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{% block title %}FDTR Generator{% endblock %} — MSU-IIT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
 </head>
 <body>
 
-<header class="site-header">
-  <div class="header-inner">
-    <div class="header-brand">
-      <span class="header-logo">📋</span>
-      <div>
-        <div class="header-title">FDTR Generator</div>
-        <div class="header-sub">MSU-Iligan Institute of Technology</div>
-      </div>
-    </div>
-    <nav class="header-nav">
-      <a href="{{ url_for('setup') }}"
-         class="nav-link {% if request.endpoint == 'setup' %}active{% endif %}">
-        ① Setup
-      </a>
-      <a href="{{ url_for('generate') }}"
-         class="nav-link {% if request.endpoint in ('generate', 'preview') %}active{% endif %}">
-        ② Generate
-      </a>
-      <a href="{{ url_for('reset') }}" class="nav-link nav-reset" title="Clear session">
-        ↺ Reset
-      </a>
-    </nav>
+<nav class="navbar">
+  <a href="{{ url_for('index') }}" class="nav-brand">
+    <span class="nav-brand-icon">📋</span> FDTR Generator
+  </a>
+  <div class="nav-links">
+    <a href="{{ url_for('setup') }}"
+       class="nav-link {% if request.endpoint == 'setup' %}active{% endif %}">
+      ① Setup
+    </a>
+    <a href="{{ url_for('generate') }}"
+       class="nav-link {% if request.endpoint in ('generate', 'preview') %}active{% endif %}">
+      ② Generate
+    </a>
   </div>
-</header>
+  <a href="{{ url_for('reset') }}" class="nav-reset" title="Clear session &amp; start over">
+    ↺ Reset
+  </a>
+</nav>
 
-<main class="main-content">
+<main>
   {% block content %}{% endblock %}
 </main>
 
+<!-- ── Disclaimer Footer ──────────────────────────────────────────────────── -->
 <footer class="site-footer">
-  <p>Faculty Daily Time Record Generator &mdash; MSU-IIT &mdash; No data is stored on the server.</p>
+  <p>
+    <span class="disclaimer-icon">⚠</span>
+    <strong>This is an unofficial tool.</strong>
+    Not affiliated with or endorsed by MSU-IIT or the Mindanao State University system.
+    All data is stored <em>only</em> in your browser — nothing is sent to any server.
+    &nbsp;·&nbsp;
+    <a href="https://github.com/JomVill/fdtr-generator/issues" target="_blank" rel="noopener">
+      Report an issue
+    </a>
+  </p>
 </footer>
 
+<!-- Scripts: calendar widget first, then app logic -->
+<script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>

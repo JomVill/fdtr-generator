@@ -4,7 +4,7 @@
 {% block content %}
 <div class="preview-page">
 
-  <!-- ── Action bar (top) ──────────────────────────────────────────────── -->
+  <!-- ── Action bar (top) ───────────────────────────────────────────────── -->
   <div class="preview-actions">
     <a href="{{ url_for('generate') }}" class="btn btn-secondary">
       ← Back to Edit
@@ -14,25 +14,35 @@
       <span class="preview-sub">{{ preview.month_name }} {{ preview.year }} — {{ preview.faculty_name }}</span>
     </div>
     <form action="{{ url_for('download') }}" method="POST" id="download-form">
-      <!-- Preserve all original form data for download -->
+      <!-- Faculty / schedule (session-resilience) -->
+      <input type="hidden" name="hf_faculty_name" value="{{ form_data.faculty_name }}">
+      <input type="hidden" name="hf_designation"  value="{{ form_data.designation }}">
+      <input type="hidden" name="hf_department"   value="{{ form_data.department }}">
+      <input type="hidden" name="hf_dept_head"    value="{{ form_data.dept_head }}">
+      <input type="hidden" name="hf_schedule"     value="{{ form_data.schedule_json }}">
+      <!-- Month / year -->
       <input type="hidden" name="month" value="{{ form_data.month }}">
       <input type="hidden" name="year"  value="{{ form_data.year }}">
-      {% for v in form_data.holiday_dates  %}<input type="hidden" name="holiday_date[]"  value="{{ v }}">{% endfor %}
-      {% for v in form_data.holiday_labels %}<input type="hidden" name="holiday_label[]" value="{{ v }}">{% endfor %}
-      {% for v in form_data.leave_dates    %}<input type="hidden" name="leave_date[]"    value="{{ v }}">{% endfor %}
-      {% for v in form_data.leave_types    %}<input type="hidden" name="leave_type[]"    value="{{ v }}">{% endfor %}
-      {% for v in form_data.travel_starts  %}<input type="hidden" name="travel_start[]"  value="{{ v }}">{% endfor %}
-      {% for v in form_data.travel_ends    %}<input type="hidden" name="travel_end[]"    value="{{ v }}">{% endfor %}
-      {% for v in form_data.travel_tas     %}<input type="hidden" name="travel_ta[]"     value="{{ v }}">{% endfor %}
-      {% for v in form_data.rel_starts     %}<input type="hidden" name="related_start[]" value="{{ v }}">{% endfor %}
-      {% for v in form_data.rel_ends       %}<input type="hidden" name="related_end[]"   value="{{ v }}">{% endfor %}
-      <button type="submit" class="btn btn-primary btn-download-top" id="download-btn">
+      <!-- Special days arrays -->
+      {% for v in form_data.holiday_dates  %}<input type="hidden" name="holiday_date[]"      value="{{ v }}">{% endfor %}
+      {% for v in form_data.holiday_labels %}<input type="hidden" name="holiday_label[]"     value="{{ v }}">{% endfor %}
+      {% for v in form_data.leave_dates    %}<input type="hidden" name="leave_date[]"        value="{{ v }}">{% endfor %}
+      {% for v in form_data.leave_types    %}<input type="hidden" name="leave_type[]"        value="{{ v }}">{% endfor %}
+      {% for v in form_data.travel_starts  %}<input type="hidden" name="travel_start[]"      value="{{ v }}">{% endfor %}
+      {% for v in form_data.travel_ends    %}<input type="hidden" name="travel_end[]"        value="{{ v }}">{% endfor %}
+      {% for v in form_data.travel_tas     %}<input type="hidden" name="travel_ta[]"         value="{{ v }}">{% endfor %}
+      {% for v in form_data.rel_starts     %}<input type="hidden" name="related_start[]"     value="{{ v }}">{% endfor %}
+      {% for v in form_data.rel_ends       %}<input type="hidden" name="related_end[]"       value="{{ v }}">{% endfor %}
+      {% for v in form_data.rel_time_ins   %}<input type="hidden" name="related_time_in[]"   value="{{ v }}">{% endfor %}
+      {% for v in form_data.rel_time_outs  %}<input type="hidden" name="related_time_out[]"  value="{{ v }}">{% endfor %}
+
+      <button type="submit" class="btn btn-primary" id="download-btn">
         ⬇ Download FDTR
       </button>
     </form>
   </div>
 
-  <!-- ── Legend ────────────────────────────────────────────────────────── -->
+  <!-- ── Legend ─────────────────────────────────────────────────────────── -->
   <div class="preview-legend">
     <span class="legend-item legend-regular">Regular Day</span>
     <span class="legend-item legend-related">Related Activities</span>
@@ -42,11 +52,11 @@
     <span class="legend-item legend-travel">Travel</span>
   </div>
 
-  <!-- ── FDTR Table ─────────────────────────────────────────────────────── -->
+  <!-- ── FDTR Table (generous padding via .fdtr-scroll) ─────────────────── -->
   <div class="fdtr-scroll">
     <table class="fdtr-table">
 
-      <!-- Institution header (no borders) -->
+      <!-- Institution header (no cell borders) -->
       <thead class="fdtr-institution">
         <tr><td colspan="14" class="inst-line">Republic of the Philippines</td></tr>
         <tr><td colspan="14" class="inst-line inst-bold">Mindanao State University</td></tr>
@@ -57,19 +67,19 @@
         <tr><td colspan="14" class="inst-month">For the month of {{ preview.month_name }} {{ preview.year }}</td></tr>
         <tr><td colspan="14" class="inst-blank">&nbsp;</td></tr>
 
-        <!-- Row 9: Name / Department — borders start here -->
+        <!-- Row 9: Name / Dept — borders start -->
         <tr class="fdtr-bordered">
-          <td colspan="8"  class="name-dept-cell">NAME: {{ preview.faculty_name }}</td>
-          <td colspan="6"  class="name-dept-cell">DEPARTMENT: {{ preview.department }}</td>
+          <td colspan="8" class="name-dept-cell">NAME: {{ preview.faculty_name }}</td>
+          <td colspan="6" class="name-dept-cell">DEPARTMENT: {{ preview.department }}</td>
         </tr>
 
         <!-- Column headers -->
         <tr class="fdtr-colheader">
           <th rowspan="2" class="th-day">DAY</th>
-          <th colspan="3" class="th-cat">CLASS</th>
-          <th colspan="3" class="th-cat">CONSULTATION</th>
-          <th colspan="3" class="th-cat th-cat-related">RELATED<br>ACTIVITIES</th>
-          <th colspan="3" class="th-cat">OTHERS<br><span class="th-sub">(Adm., R&amp;E)</span></th>
+          <th colspan="3">CLASS</th>
+          <th colspan="3">CONSULTATION</th>
+          <th colspan="3" class="th-cat-related">RELATED<br>ACTIVITIES</th>
+          <th colspan="3">OTHERS<br><span class="th-sub">(Adm., R&amp;E)</span></th>
           <th rowspan="2" class="th-total">Total<br>Hours</th>
         </tr>
         <tr class="fdtr-colheader">
@@ -95,7 +105,7 @@
             </td>
           </tr>
 
-          {# ── Regular / Related Activities day (2 sub-rows) ── #}
+          {# ── Regular / Related Activities (2 sub-rows) ── #}
           {% else %}
           <tr class="day-row day-{{ row.day_class }}">
             <td class="td-day" rowspan="2">{{ row.day }}</td>
@@ -120,7 +130,7 @@
         {% endfor %}
       </tbody>
 
-      <!-- Footer signature area -->
+      <!-- Footer -->
       <tfoot>
         <tr>
           <td colspan="14" class="footer-cert">
@@ -130,7 +140,7 @@
           </td>
         </tr>
         <tr>
-          <td colspan="6"  class="footer-sig-cell">
+          <td colspan="6" class="footer-sig-cell">
             <div class="footer-name">{{ preview.faculty_name }}</div>
             <div class="footer-label">(Signature over printed name)</div>
             <div class="footer-desig">{{ preview.designation }}</div>
@@ -151,14 +161,14 @@
     <a href="{{ url_for('generate') }}" class="btn btn-secondary">
       ← Back to Edit
     </a>
-    <button type="submit" form="download-form" class="btn btn-primary btn-download-top">
+    <button type="submit" form="download-form" class="btn btn-primary">
       ⬇ Download FDTR
     </button>
   </div>
 
 </div>
 
-<!-- Loading overlay while Excel generates -->
+<!-- Loading overlay -->
 <div class="loading-overlay" id="loading-overlay">
   <div class="spinner"></div>
   <p class="loading-text">Generating your FDTR… please wait</p>
@@ -167,10 +177,9 @@
 
 {% block scripts %}
 <script>
-document.getElementById("download-form").addEventListener("submit", function () {
+document.getElementById("download-form").addEventListener("submit", function() {
   document.getElementById("loading-overlay").classList.add("active");
-  // Hide overlay after download starts (browser triggers download, page stays)
-  setTimeout(function () {
+  setTimeout(function() {
     document.getElementById("loading-overlay").classList.remove("active");
   }, 3500);
 });

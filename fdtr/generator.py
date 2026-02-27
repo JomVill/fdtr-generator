@@ -396,7 +396,7 @@ def _write_regular_day(ws, base_row: int, day_num: int,
         cat_data[cat].append((t_in, t_out, hrs))
 
     # Fill up to 2 entries per category into the 2 data sub-rows
-    TIME_FMT = "HH:MM"
+    TIME_FMT = "h:MM AM/PM"
     for cat, entries in cat_data.items():
         cols = CATEGORY_COLS[cat]
         for sub_i, (t_in, t_out, hrs) in enumerate(entries[:2]):
@@ -493,6 +493,17 @@ def _set_row_heights(ws, days_in_month: int):
 # Preview data generator (for HTML preview page)
 # ---------------------------------------------------------------------------
 
+def _fmt12(t: Optional[time]) -> str:
+    """Format a time object as 12-hr string, e.g. time(8,30) → '8:30 AM'."""
+    if t is None:
+        return ""
+    h    = t.hour
+    m    = t.minute
+    ampm = "AM" if h < 12 else "PM"
+    h12  = h % 12 or 12
+    return f"{h12}:{m:02d} {ampm}"
+
+
 def _build_preview_regular(day: int, day_date, slots: list,
                             force_category: str = None) -> dict:
     """Build a regular-day dict for HTML preview rendering."""
@@ -508,8 +519,8 @@ def _build_preview_regular(day: int, day_date, slots: list,
         hrs   = _hours(t_in, t_out)
         total_hours += hrs
         cat_data[cat].append({
-            "in":  t_in.strftime("%H:%M")  if t_in  else "",
-            "out": t_out.strftime("%H:%M") if t_out else "",
+            "in":  _fmt12(t_in),
+            "out": _fmt12(t_out),
             "hrs": int(hrs) if hrs == int(hrs) else round(hrs, 2) if hrs else "",
         })
 
@@ -557,8 +568,14 @@ def generate_preview_data(
             label    = entry.get("label", "")
 
             if day_type == "related_activities":
-                weekday_name = WEEKDAY_NAMES[weekday] if weekday < 5 else "monday"
-                slots = weekly_schedule.get(weekday_name, [])
+                custom_in  = entry.get("time_in",  "").strip()
+                custom_out = entry.get("time_out", "").strip()
+                if custom_in and custom_out:
+                    slots = [{"time_in": custom_in, "time_out": custom_out,
+                              "category": "related_activities", "label": ""}]
+                else:
+                    weekday_name = WEEKDAY_NAMES[weekday] if weekday < 5 else "monday"
+                    slots = weekly_schedule.get(weekday_name, [])
                 rows.append(_build_preview_regular(day, day_date, slots,
                                                     force_category="related_activities"))
             elif day_type in ("leave", "travel"):
@@ -647,9 +664,15 @@ def generate_fdtr(
             label    = entry.get("label", "")
 
             if day_type == "related_activities":
-                # Regular working day but ALL time slots → Related Activities
-                weekday_name = WEEKDAY_NAMES[weekday] if weekday < 5 else "monday"
-                slots = weekly_schedule.get(weekday_name, [])
+                # Use custom times if provided, otherwise fall back to weekly schedule
+                custom_in  = entry.get("time_in",  "").strip()
+                custom_out = entry.get("time_out", "").strip()
+                if custom_in and custom_out:
+                    slots = [{"time_in": custom_in, "time_out": custom_out,
+                              "category": "related_activities", "label": ""}]
+                else:
+                    weekday_name = WEEKDAY_NAMES[weekday] if weekday < 5 else "monday"
+                    slots = weekly_schedule.get(weekday_name, [])
                 _write_regular_day(ws, base_row, day, slots,
                                    force_category="related_activities")
             elif day_type in ("leave", "travel"):

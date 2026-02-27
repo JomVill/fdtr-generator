@@ -1,26 +1,34 @@
 {% extends "base.html" %}
-{% block title %}Setup — Faculty Info & Schedule{% endblock %}
+{% block title %}Setup — Faculty Info &amp; Schedule{% endblock %}
 
 {% block content %}
 <div class="page-container">
+
   <div class="page-header">
-    <h1>Step 1 &mdash; Faculty Info &amp; Weekly Schedule</h1>
-    <p class="page-desc">Fill in your details and set your regular weekly class schedule. This is saved for the session and reused every month you generate.</p>
+    <div class="step-badge">Step 1 of 2</div>
+    <h1>Faculty Info &amp; Weekly Schedule</h1>
+    <p class="page-desc">
+      Fill in your profile once — it will be remembered in this browser.
+      Draw your weekly schedule on the calendar below by <strong>clicking and dragging</strong>.
+    </p>
   </div>
 
   <form action="{{ url_for('save_setup') }}" method="POST" id="setup-form">
 
-    <!-- ── Faculty Information ─────────────────────────────────────────── -->
+    <!-- Hidden field: calendar widget serialises schedule here -->
+    <input type="hidden" id="schedule-json" name="schedule_json" value="">
+
+    <!-- ── Faculty Information ────────────────────────────────────────────── -->
     <section class="card">
       <h2 class="card-title">👤 Faculty Information</h2>
-      <div class="form-grid">
+      <div class="form-row">
         <div class="form-group">
-          <label for="faculty_name">Full Name (with suffix/degree)</label>
+          <label for="faculty_name">Full Name (with suffix / degree)</label>
           <input type="text" id="faculty_name" name="faculty_name"
                  value="{{ faculty.faculty_name }}"
                  placeholder="e.g. JUAN DELA CRUZ, MSc."
                  required class="form-input"/>
-          <span class="form-hint">Will appear exactly as typed in the FDTR header</span>
+          <span class="form-hint">Will appear exactly as typed on the FDTR</span>
         </div>
         <div class="form-group">
           <label for="designation">Designation / Position</label>
@@ -29,6 +37,8 @@
                  placeholder="e.g. Assistant Professor I"
                  required class="form-input"/>
         </div>
+      </div>
+      <div class="form-row">
         <div class="form-group">
           <label for="department">Department / Unit</label>
           <input type="text" id="department" name="department"
@@ -46,76 +56,35 @@
       </div>
     </section>
 
-    <!-- ── Weekly Schedule ───────────────────────────────────────────────── -->
-    <section class="card">
+    <!-- ── Weekly Schedule — Calendar view ───────────────────────────────── -->
+    <section class="cal-section">
       <h2 class="card-title">🗓 Weekly Schedule</h2>
-      <p class="card-desc">Add your regular time slots for each weekday. Use <strong>+ Add Slot</strong> to add multiple blocks per day (e.g. morning admin + evening class).</p>
+      <p class="cal-hint">
+        <strong>Click and drag</strong> on a day column to create a time block.
+        <strong>Click a block</strong> to set its category and label.
+        <strong>Drag the bottom edge</strong> to resize.
+        Your schedule is saved automatically to this browser.
+      </p>
 
-      {% set cat_map = {
-        'class':              'Class',
-        'consultation':       'Consultation',
-        'related_activities': 'Related Activities',
-        'others':             'Others (Adm., R&E)'
-      } %}
-
-      {% for day in weekdays %}
-      {% set day_key = day.lower() %}
-      <div class="day-block">
-        <div class="day-label">{{ day }}</div>
-        <div class="slots-container" id="slots-{{ day_key }}">
-          {% for slot in schedule.get(day_key, []) %}
-          <div class="slot-row" data-day="{{ day_key }}">
-            <input type="time" name="schedule_{{ day_key }}_time_in[]"
-                   value="{{ slot.time_in }}" class="slot-input" required/>
-            <span class="slot-sep">–</span>
-            <input type="time" name="schedule_{{ day_key }}_time_out[]"
-                   value="{{ slot.time_out }}" class="slot-input" required/>
-            <select name="schedule_{{ day_key }}_category[]" class="slot-select">
-              {% for cat_val, cat_lbl in categories %}
-              <option value="{{ cat_val }}"
-                {% if slot.category == cat_val %}selected{% endif %}>
-                {{ cat_lbl }}
-              </option>
-              {% endfor %}
-            </select>
-            <input type="text" name="schedule_{{ day_key }}_label[]"
-                   value="{{ slot.label }}"
-                   placeholder="Label (optional)"
-                   class="slot-label-input"/>
-            <button type="button" class="btn-remove-slot" onclick="removeSlot(this)" title="Remove">✕</button>
-          </div>
-          {% endfor %}
-        </div>
-        <button type="button" class="btn-add-slot" onclick="addSlot('{{ day_key }}')">
-          + Add Slot
-        </button>
-      </div>
-      {% endfor %}
+      <!-- Calendar widget renders here -->
+      <div id="cal-container"></div>
     </section>
 
+    <!-- Save & Continue -->
     <div class="form-actions">
-      <button type="submit" class="btn btn-primary btn-lg">
-        Save &amp; Continue to Generate →
+      <button type="submit" class="btn btn-primary btn-lg btn-generate">
+        Save &amp; Continue →
       </button>
+      <p class="form-hint center-hint">
+        Profile &amp; schedule are saved in your browser — they'll be here next time.
+      </p>
     </div>
 
   </form>
 </div>
 
-<!-- Slot template (hidden) -->
-<template id="slot-template">
-  <div class="slot-row">
-    <input type="time" name="schedule_DAY_time_in[]" class="slot-input" required/>
-    <span class="slot-sep">–</span>
-    <input type="time" name="schedule_DAY_time_out[]" class="slot-input" required/>
-    <select name="schedule_DAY_category[]" class="slot-select">
-      {% for cat_val, cat_lbl in categories %}
-      <option value="{{ cat_val }}">{{ cat_lbl }}</option>
-      {% endfor %}
-    </select>
-    <input type="text" name="schedule_DAY_label[]"
-           placeholder="Label (optional)" class="slot-label-input"/>
-    <button type="button" class="btn-remove-slot" onclick="removeSlot(this)" title="Remove">✕</button>
-  </div>
-</template>
+<!-- Inline JSON for server-rendered schedule (for calendar init) -->
+<script id="schedule-initial" type="application/json">
+  {{ schedule | tojson }}
+</script>
 {% endblock %}

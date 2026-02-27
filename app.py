@@ -1,7 +1,9 @@
 """
-FDTR Monthly Generator — Flask Application
+FDTR Monthly Generator — Flask Application (v2)
 """
 
+import io
+import json
 import os
 import calendar
 from datetime import date, datetime, timedelta
@@ -11,7 +13,6 @@ from flask import (
     Flask, render_template, request, session,
     redirect, url_for, send_file
 )
-import io
 
 from fdtr.generator import generate_fdtr, generate_preview_data
 
@@ -21,7 +22,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
 # ---------------------------------------------------------------------------
-# Leave types (full list)
+# Constants
 # ---------------------------------------------------------------------------
 
 LEAVE_TYPES = [
@@ -44,19 +45,10 @@ LEAVE_TYPES = [
     "Wellness Leave",
 ]
 
-SCHEDULE_CATEGORIES = [
-    ("class",              "Class"),
-    ("consultation",       "Consultation"),
-    ("related_activities", "Related Activities"),
-    ("others",             "Others (Adm., R&E)"),
-]
-
-WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-
 MONTH_NAMES = [
-    (1, "January"), (2, "February"), (3, "March"), (4, "April"),
-    (5, "May"), (6, "June"), (7, "July"), (8, "August"),
-    (9, "September"), (10, "October"), (11, "November"), (12, "December"),
+    (1, "January"), (2, "February"), (3, "March"),    (4, "April"),
+    (5, "May"),     (6, "June"),     (7, "July"),     (8, "August"),
+    (9, "September"),(10, "October"),(11, "November"),(12, "December"),
 ]
 
 
@@ -84,45 +76,48 @@ def setup():
         "setup.html",
         faculty=faculty,
         schedule=schedule,
-        weekdays=WEEKDAYS,
-        categories=SCHEDULE_CATEGORIES,
     )
 
 
 @app.route("/save-setup", methods=["POST"])
 def save_setup():
-    # Faculty info
+    # ── Faculty info ──────────────────────────────────────────────────────
     session["faculty_name"] = request.form.get("faculty_name", "").strip().upper()
-    session["designation"]  = request.form.get("designation", "").strip()
-    session["department"]   = request.form.get("department", "").strip().upper()
-    session["dept_head"]    = request.form.get("dept_head", "").strip().upper()
+    session["designation"]  = request.form.get("designation",  "").strip()
+    session["department"]   = request.form.get("department",   "").strip().upper()
+    session["dept_head"]    = request.form.get("dept_head",    "").strip().upper()
 
-    # Weekly schedule — collect from repeated form fields
-    # Field names: schedule[monday][0][time_in], schedule[monday][0][time_out], etc.
-    weekly_schedule = {}
-    for day in ("monday", "tuesday", "wednesday", "thursday", "friday"):
-        slots = []
-        # The form sends arrays: schedule_<day>_time_in[], etc.
-        time_ins   = request.form.getlist(f"schedule_{day}_time_in[]")
-        time_outs  = request.form.getlist(f"schedule_{day}_time_out[]")
-        categories = request.form.getlist(f"schedule_{day}_category[]")
-        labels     = request.form.getlist(f"schedule_{day}_label[]")
+    # ── Weekly schedule — prefer JSON from calendar widget ────────────────
+    schedule_json_str = request.form.get("schedule_json", "").strip()
+    if schedule_json_str:
+        try:
+            sched = json.loads(schedule_json_str)
+            # Ensure all weekday keys exist
+            for day in ("monday", "tuesday", "wednesday", "thursday", "friday"):
+                sched.setdefault(day, [])
+            session["weekly_schedule"] = sched
+        except (json.JSONDecodeError, ValueError):
+            session["weekly_schedule"] = _default_schedule()
+    else:
+        # Legacy slot-based parsing (fallback)
+        weekly_schedule = {}
+        for day in ("monday", "tuesday", "wednesday", "thursday", "friday"):
+            slots = []
+            time_ins   = request.form.getlist(f"schedule_{day}_time_in[]")
+            time_outs  = request.form.getlist(f"schedule_{day}_time_out[]")
+            categories = request.form.getlist(f"schedule_{day}_category[]")
+            labels     = request.form.getlist(f"schedule_{day}_label[]")
+            for i in range(len(time_ins)):
+                t_in  = (time_ins[i]   or "").strip()
+                t_out = (time_outs[i]  or "").strip()
+                cat   = (categories[i] if i < len(categories) else "others").strip()
+                lbl   = (labels[i]     if i < len(labels)     else "").strip()
+                if t_in and t_out:
+                    slots.append({"time_in": t_in, "time_out": t_out,
+                                  "category": cat, "label": lbl})
+            weekly_schedule[day] = slots
+        session["weekly_schedule"] = weekly_schedule
 
-        for i in range(len(time_ins)):
-            t_in  = (time_ins[i]   or "").strip()
-            t_out = (time_outs[i]  or "").strip()
-            cat   = (categories[i] if i < len(categories) else "others").strip()
-            lbl   = (labels[i]     if i < len(labels) else "").strip()
-            if t_in and t_out:
-                slots.append({
-                    "time_in":  t_in,
-                    "time_out": t_out,
-                    "category": cat,
-                    "label":    lbl,
-                })
-        weekly_schedule[day] = slots
-
-    session["weekly_schedule"] = weekly_schedule
     session.modified = True
     return redirect(url_for("generate"))
 
@@ -133,28 +128,48 @@ def generate():
         return redirect(url_for("setup"))
 
     today = date.today()
+    schedule_json = json.dumps(session.get("weekly_schedule", _default_schedule()))
+
     return render_template(
         "generate.html",
-        faculty_name=session.get("faculty_name", ""),
-        department=session.get("department", ""),
-        current_month=today.month,
-        current_year=today.year,
-        month_names=MONTH_NAMES,
-        years=list(range(today.year - 1, today.year + 3)),
-        leave_types=LEAVE_TYPES,
+        faculty_name   = session.get("faculty_name", ""),
+        designation    = session.get("designation", ""),
+        department     = session.get("department", ""),
+        dept_head      = session.get("dept_head", ""),
+        schedule_json  = schedule_json,
+        current_month  = today.month,
+        current_year   = today.year,
+        month_names    = MONTH_NAMES,
+        years          = list(range(today.year - 1, today.year + 3)),
+        leave_types    = LEAVE_TYPES,
     )
 
 
 @app.route("/preview", methods=["POST"])
 def preview():
     """Build preview data and render the interactive preview page."""
-    if "faculty_name" not in session:
+    # Faculty — session first, then hidden form fields from localStorage
+    faculty_name = (session.get("faculty_name") or
+                    request.form.get("hf_faculty_name", "")).strip().upper()
+    designation  = (session.get("designation")  or
+                    request.form.get("hf_designation", "")).strip()
+    department   = (session.get("department")   or
+                    request.form.get("hf_department", "")).strip().upper()
+    dept_head    = (session.get("dept_head")    or
+                    request.form.get("hf_dept_head", "")).strip().upper()
+
+    if not faculty_name:
         return redirect(url_for("setup"))
+
+    # Weekly schedule — session first, then JSON hidden field
+    weekly_schedule = session.get("weekly_schedule")
+    if not weekly_schedule:
+        weekly_schedule = _parse_schedule_json(request.form.get("hf_schedule", ""))
 
     month = int(request.form.get("month", date.today().month))
     year  = int(request.form.get("year",  date.today().year))
 
-    # Collect raw form arrays (kept for the hidden re-submit form in preview.html)
+    # Raw form arrays
     holiday_dates  = [s.strip() for s in request.form.getlist("holiday_date[]")]
     holiday_labels = [s.strip() for s in request.form.getlist("holiday_label[]")]
     leave_dates    = [s.strip() for s in request.form.getlist("leave_date[]")]
@@ -164,28 +179,36 @@ def preview():
     travel_tas     = [s.strip() for s in request.form.getlist("travel_ta[]")]
     rel_starts     = [s.strip() for s in request.form.getlist("related_start[]")]
     rel_ends       = [s.strip() for s in request.form.getlist("related_end[]")]
+    rel_time_ins   = [s.strip() for s in request.form.getlist("related_time_in[]")]
+    rel_time_outs  = [s.strip() for s in request.form.getlist("related_time_out[]")]
 
     special_days = _build_special_days(
         holiday_dates, holiday_labels,
         leave_dates, leave_types_in,
         travel_starts, travel_ends, travel_tas,
-        rel_starts, rel_ends,
+        rel_starts, rel_ends, rel_time_ins, rel_time_outs,
     )
 
     prev = generate_preview_data(
-        faculty_name    = session["faculty_name"],
-        designation     = session.get("designation", ""),
-        department      = session.get("department", ""),
-        dept_head       = session.get("dept_head", ""),
+        faculty_name    = faculty_name,
+        designation     = designation,
+        department      = department,
+        dept_head       = dept_head,
         month           = month,
         year            = year,
-        weekly_schedule = session.get("weekly_schedule", _default_schedule()),
+        weekly_schedule = weekly_schedule,
         special_days    = special_days,
     )
 
+    # Pass all raw data so preview.html can re-submit for download
     form_data = {
         "month":          month,
         "year":           year,
+        "faculty_name":   faculty_name,
+        "designation":    designation,
+        "department":     department,
+        "dept_head":      dept_head,
+        "schedule_json":  json.dumps(weekly_schedule),
         "holiday_dates":  holiday_dates,
         "holiday_labels": holiday_labels,
         "leave_dates":    leave_dates,
@@ -195,19 +218,31 @@ def preview():
         "travel_tas":     travel_tas,
         "rel_starts":     rel_starts,
         "rel_ends":       rel_ends,
+        "rel_time_ins":   rel_time_ins,
+        "rel_time_outs":  rel_time_outs,
     }
 
-    return render_template(
-        "preview.html",
-        preview   = prev,
-        form_data = form_data,
-    )
+    return render_template("preview.html", preview=prev, form_data=form_data)
 
 
 @app.route("/download", methods=["POST"])
 def download():
-    if "faculty_name" not in session:
+    # Faculty — session first, then hidden fields
+    faculty_name = (session.get("faculty_name") or
+                    request.form.get("hf_faculty_name", "")).strip().upper()
+    designation  = (session.get("designation")  or
+                    request.form.get("hf_designation", "")).strip()
+    department   = (session.get("department")   or
+                    request.form.get("hf_department", "")).strip().upper()
+    dept_head    = (session.get("dept_head")    or
+                    request.form.get("hf_dept_head", "")).strip().upper()
+
+    if not faculty_name:
         return redirect(url_for("setup"))
+
+    weekly_schedule = session.get("weekly_schedule")
+    if not weekly_schedule:
+        weekly_schedule = _parse_schedule_json(request.form.get("hf_schedule", ""))
 
     month = int(request.form.get("month", date.today().month))
     year  = int(request.form.get("year",  date.today().year))
@@ -221,28 +256,30 @@ def download():
     travel_tas     = [s.strip() for s in request.form.getlist("travel_ta[]")]
     rel_starts     = [s.strip() for s in request.form.getlist("related_start[]")]
     rel_ends       = [s.strip() for s in request.form.getlist("related_end[]")]
+    rel_time_ins   = [s.strip() for s in request.form.getlist("related_time_in[]")]
+    rel_time_outs  = [s.strip() for s in request.form.getlist("related_time_out[]")]
 
     special_days = _build_special_days(
         holiday_dates, holiday_labels,
         leave_dates, leave_types_in,
         travel_starts, travel_ends, travel_tas,
-        rel_starts, rel_ends,
+        rel_starts, rel_ends, rel_time_ins, rel_time_outs,
     )
 
     excel_bytes = generate_fdtr(
-        faculty_name    = session["faculty_name"],
-        designation     = session.get("designation", ""),
-        department      = session.get("department", ""),
-        dept_head       = session.get("dept_head", ""),
+        faculty_name    = faculty_name,
+        designation     = designation,
+        department      = department,
+        dept_head       = dept_head,
         month           = month,
         year            = year,
-        weekly_schedule = session.get("weekly_schedule", _default_schedule()),
+        weekly_schedule = weekly_schedule,
         special_days    = special_days,
     )
 
     month_name = dict(MONTH_NAMES)[month]
     filename   = (f"FDTR_{year}_{month_name}_"
-                  f"{session['faculty_name'].replace(' ', '_').replace(',', '')}.xlsx")
+                  f"{faculty_name.replace(' ', '_').replace(',', '')}.xlsx")
 
     return send_file(
         io.BytesIO(excel_bytes),
@@ -262,13 +299,27 @@ def reset():
 # Helpers
 # ---------------------------------------------------------------------------
 
+def _parse_schedule_json(raw: str) -> dict:
+    """Parse schedule JSON string, return default on error."""
+    if not raw:
+        return _default_schedule()
+    try:
+        sched = json.loads(raw)
+        for day in ("monday", "tuesday", "wednesday", "thursday", "friday"):
+            sched.setdefault(day, [])
+        return sched
+    except (json.JSONDecodeError, ValueError):
+        return _default_schedule()
+
+
 def _build_special_days(
     holiday_dates, holiday_labels,
     leave_dates, leave_types_in,
     travel_starts, travel_ends, travel_tas,
     rel_starts, rel_ends,
+    rel_time_ins=None, rel_time_outs=None,
 ) -> dict:
-    """Parse all special-day form arrays into a {date_str: {type, label}} dict."""
+    """Parse all special-day form arrays into {date_str: {type, label, …}} dict."""
     special_days = {}
 
     for d, lbl in zip(holiday_dates, holiday_labels):
@@ -293,15 +344,20 @@ def _build_special_days(
             except ValueError:
                 pass
 
-    for start_str, end_str in zip(rel_starts, rel_ends):
+    for i, (start_str, end_str) in enumerate(zip(rel_starts, rel_ends)):
         if start_str and end_str:
+            t_in  = rel_time_ins[i]  if rel_time_ins  and i < len(rel_time_ins)  else ""
+            t_out = rel_time_outs[i] if rel_time_outs and i < len(rel_time_outs) else ""
             try:
                 start_d = datetime.strptime(start_str, "%Y-%m-%d").date()
                 end_d   = datetime.strptime(end_str,   "%Y-%m-%d").date()
                 cur = start_d
                 while cur <= end_d:
                     special_days[cur.strftime("%Y-%m-%d")] = {
-                        "type": "related_activities", "label": "",
+                        "type":     "related_activities",
+                        "label":    "",
+                        "time_in":  t_in,
+                        "time_out": t_out,
                     }
                     cur += timedelta(days=1)
             except ValueError:
@@ -311,12 +367,13 @@ def _build_special_days(
 
 
 def _default_schedule() -> dict:
-    """Return a default weekly schedule (Mon-Fri 8-12, 13-17 Others)."""
+    """Return a sensible default weekly schedule (Mon-Fri, 8-12 & 13-17 Others)."""
     slots = [
         {"time_in": "08:00", "time_out": "12:00", "category": "others", "label": ""},
         {"time_in": "13:00", "time_out": "17:00", "category": "others", "label": ""},
     ]
-    return {day: list(slots) for day in ("monday", "tuesday", "wednesday", "thursday", "friday")}
+    return {day: list(slots)
+            for day in ("monday", "tuesday", "wednesday", "thursday", "friday")}
 
 
 # ---------------------------------------------------------------------------
