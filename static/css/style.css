@@ -253,6 +253,12 @@ main { flex: 1; padding: 2rem 1.5rem 3rem; }
 .card.card-action .form-hint {
   color: rgba(255,255,255,.7);
 }
+.action-btn-row {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
 
 
 /* ── Buttons ──────────────────────────────────────────────────────────────── */

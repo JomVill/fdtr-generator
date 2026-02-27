@@ -70,11 +70,17 @@
       <div id="cal-container"></div>
     </section>
 
-    <!-- Save & Continue — standalone action card -->
+    <!-- Save / Continue — two independent buttons -->
     <section class="card card-action">
-      <button type="submit" class="btn btn-primary btn-lg btn-generate">
-        Save &amp; Continue →
-      </button>
+      <div class="action-btn-row">
+        <button type="button" class="btn btn-secondary btn-lg" id="save-btn"
+                onclick="saveProfile(); this.textContent='✓ Saved'; setTimeout(() => this.textContent='Save', 1800)">
+          Save
+        </button>
+        <button type="submit" class="btn btn-primary btn-lg btn-generate">
+          Continue →
+        </button>
+      </div>
       <p class="form-hint center-hint">
         Profile &amp; schedule are saved in your browser — they'll be here next time.
       </p>
