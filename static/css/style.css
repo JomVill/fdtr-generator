@@ -130,7 +130,7 @@ a:hover { text-decoration: underline; }
 /* ── Main content wrapper ─────────────────────────────────────────────────── */
 main { flex: 1; padding: 2rem 1.5rem 3rem; }
 
-.page-container { max-width: 860px; margin: 0 auto; }
+.page-container { max-width: 1100px; margin: 0 auto; }
 
 .page-header { margin-bottom: 1.75rem; }
 .page-header h1 {
@@ -367,6 +367,93 @@ main { flex: 1; padding: 2rem 1.5rem 3rem; }
 .btn-remove-row:hover { color: var(--danger); background: var(--danger-light); }
 
 
+/* ── Preset bar (schedule name + load/save/delete) ───────────────────────── */
+.preset-bar {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+  background: var(--gray-50);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: .5rem .75rem;
+  margin-bottom: .85rem;
+}
+
+.preset-bar label {
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--gray-600);
+  white-space: nowrap;
+}
+
+.preset-select {
+  flex: 1;
+  min-width: 160px;
+  max-width: 280px;
+  border: 1.5px solid var(--gray-300);
+  border-radius: var(--r-sm);
+  padding: .35rem .6rem;
+  font-size: .82rem;
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+}
+.preset-select:focus { border-color: var(--brand-mid); }
+
+/* Small utility button used in preset bar */
+.btn-sm {
+  font-size: .78rem;
+  font-weight: 600;
+  padding: .35rem .75rem;
+  border-radius: var(--r-sm);
+  border: 1.5px solid var(--gray-300);
+  background: var(--surface);
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+  font-family: var(--font);
+  white-space: nowrap;
+}
+.btn-sm:hover { background: var(--gray-100); border-color: var(--gray-400); color: var(--gray-800); }
+.btn-sm.btn-sm-danger { color: var(--danger); border-color: rgba(220,38,38,.25); }
+.btn-sm.btn-sm-danger:hover { background: var(--danger-light); border-color: var(--danger); }
+
+/* ── Time-toggle button (Related Activities rows) ─────────────────────────── */
+.btn-add-time {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-light);
+  border: 1.5px solid rgba(13,148,136,.3);
+  border-radius: var(--r-sm);
+  padding: .3rem .65rem;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+  white-space: nowrap;
+  font-family: var(--font);
+}
+.btn-add-time:hover { background: #ccfbf1; border-color: var(--accent); }
+
+/* Hidden time-slot wrapper inside related rows */
+.time-slots {
+  display: none;
+  align-items: center;
+  gap: .35rem;
+  flex-wrap: nowrap;
+}
+
+/* Separator inside the card: visually divides related-activity rows from holidays */
+.card-inner-sep {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.1rem 0 .9rem;
+}
+
 /* ── Loading overlay ──────────────────────────────────────────────────────── */
 .loading-overlay {
   display: none;
@@ -516,10 +603,9 @@ main { flex: 1; padding: 2rem 1.5rem 3rem; }
   z-index: 10;
 }
 
-/* Blocks */
+/* Blocks — left/right set dynamically by JS (overlap layout uses calc()) */
 .cal-block {
   position: absolute;
-  left: 2px; right: 2px;
   border-radius: 5px;
   border-left-width: 3px;
   border-left-style: solid;

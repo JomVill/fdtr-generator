@@ -574,7 +574,7 @@ def generate_preview_data(
                     slots = [{"time_in": custom_in, "time_out": custom_out,
                               "category": "related_activities", "label": ""}]
                 else:
-                    weekday_name = WEEKDAY_NAMES[weekday] if weekday < 5 else "monday"
+                    weekday_name = WEEKDAY_NAMES[weekday]
                     slots = weekly_schedule.get(weekday_name, [])
                 rows.append(_build_preview_regular(day, day_date, slots,
                                                     force_category="related_activities"))
@@ -671,7 +671,7 @@ def generate_fdtr(
                     slots = [{"time_in": custom_in, "time_out": custom_out,
                               "category": "related_activities", "label": ""}]
                 else:
-                    weekday_name = WEEKDAY_NAMES[weekday] if weekday < 5 else "monday"
+                    weekday_name = WEEKDAY_NAMES[weekday]
                     slots = weekly_schedule.get(weekday_name, [])
                 _write_regular_day(ws, base_row, day, slots,
                                    force_category="related_activities")

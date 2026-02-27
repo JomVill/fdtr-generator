@@ -46,17 +46,28 @@
       </div>
     </section>
 
-    <!-- ── Class Suspension / Related Activities ───────────────────────────── -->
+    <!-- ── Class Suspension / Related Activities + Holidays ────────────────── -->
     <section class="card">
       <h2 class="card-title">📋 Class Suspension / Related Activities</h2>
       <p class="card-desc">
         Days when classes are suspended but you still report. Time slots will be recorded under
-        <em>Related Activities</em> (H–J). Optionally set custom time-in/out below — otherwise
-        your regular schedule is used.
+        <em>Related Activities</em> (H–J). Optionally set custom time-in/out — otherwise your
+        regular schedule is used.
       </p>
       <div id="related-container"></div>
       <button type="button" class="btn-add-row" onclick="addRow('related')">
         + Add Suspension / Related Activity Period
+      </button>
+
+      <hr class="card-inner-sep">
+
+      <h3 class="card-title" style="font-size:.9rem; margin-bottom:.55rem;">🏖 Holidays</h3>
+      <p class="card-desc" style="margin-bottom:.65rem;">
+        Public holidays and special non-working days. Weekends are added automatically.
+      </p>
+      <div id="holidays-container"></div>
+      <button type="button" class="btn-add-row" onclick="addRow('holidays')">
+        + Add Holiday
       </button>
     </section>
 
@@ -80,21 +91,14 @@
       </button>
     </section>
 
-    <!-- ── Holidays ────────────────────────────────────────────────────────── -->
-    <section class="card">
-      <h2 class="card-title">🏖 Holidays</h2>
-      <p class="card-desc">Public holidays and special non-working days. Weekends are added automatically.</p>
-      <div id="holidays-container"></div>
-      <button type="button" class="btn-add-row" onclick="addRow('holidays')">
-        + Add Holiday
-      </button>
-    </section>
-
-    <!-- ── Preview Button ─────────────────────────────────────────────────── -->
+    <!-- ── Preview / Back Buttons ──────────────────────────────────────────── -->
     <div class="form-actions">
       <button type="submit" class="btn btn-primary btn-lg btn-generate" id="generate-btn">
         👁 Preview FDTR
       </button>
+      <a href="{{ url_for('setup') }}" class="btn btn-secondary btn-lg">
+        ← Back to Schedule
+      </a>
       <p class="form-hint center-hint">Review before downloading — you can go back and edit if needed.</p>
     </div>
 
@@ -149,10 +153,13 @@
     <input type="date" name="related_start[]" class="form-input input-date" required/>
     <label class="inline-label">To</label>
     <input type="date" name="related_end[]"   class="form-input input-date" required/>
-    <label class="inline-label">Time</label>
-    <input type="time" name="related_time_in[]"  class="form-input input-time" title="Optional custom time-in"/>
-    <span class="slot-sep">–</span>
-    <input type="time" name="related_time_out[]" class="form-input input-time" title="Optional custom time-out"/>
+    <button type="button" class="btn-add-time" onclick="toggleTime(this)">+ Add time</button>
+    <div class="time-slots">
+      <label class="inline-label">Time</label>
+      <input type="time" name="related_time_in[]"  class="form-input input-time" title="Custom time-in"/>
+      <span class="slot-sep">–</span>
+      <input type="time" name="related_time_out[]" class="form-input input-time" title="Custom time-out"/>
+    </div>
     <button type="button" class="btn-remove-row" onclick="removeRow(this)" title="Remove">✕</button>
   </div>
 </template>

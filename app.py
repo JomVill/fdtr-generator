@@ -187,6 +187,7 @@ def preview():
         leave_dates, leave_types_in,
         travel_starts, travel_ends, travel_tas,
         rel_starts, rel_ends, rel_time_ins, rel_time_outs,
+        weekly_schedule=weekly_schedule,
     )
 
     prev = generate_preview_data(
@@ -264,6 +265,7 @@ def download():
         leave_dates, leave_types_in,
         travel_starts, travel_ends, travel_tas,
         rel_starts, rel_ends, rel_time_ins, rel_time_outs,
+        weekly_schedule=weekly_schedule,
     )
 
     excel_bytes = generate_fdtr(
@@ -312,15 +314,28 @@ def _parse_schedule_json(raw: str) -> dict:
         return _default_schedule()
 
 
+_WEEKDAY_KEYS = [
+    "monday", "tuesday", "wednesday", "thursday",
+    "friday", "saturday", "sunday",
+]
+
+
 def _build_special_days(
     holiday_dates, holiday_labels,
     leave_dates, leave_types_in,
     travel_starts, travel_ends, travel_tas,
     rel_starts, rel_ends,
     rel_time_ins=None, rel_time_outs=None,
+    weekly_schedule=None,
 ) -> dict:
-    """Parse all special-day form arrays into {date_str: {type, label, …}} dict."""
+    """Parse all special-day form arrays into {date_str: {type, label, …}} dict.
+
+    weekly_schedule is used to decide whether to apply a related-activities
+    entry on a weekend: if the weekend has no schedule blocks, it is left as a
+    normal weekend (SATURDAY / SUNDAY) rather than being overridden.
+    """
     special_days = {}
+    sched = weekly_schedule or {}
 
     for d, lbl in zip(holiday_dates, holiday_labels):
         if d and lbl:
@@ -353,6 +368,16 @@ def _build_special_days(
                 end_d   = datetime.strptime(end_str,   "%Y-%m-%d").date()
                 cur = start_d
                 while cur <= end_d:
+                    weekday   = cur.weekday()          # 0=Mon … 6=Sun
+                    day_key   = _WEEKDAY_KEYS[weekday]
+                    is_weekend = weekday >= 5          # Sat=5, Sun=6
+
+                    # Skip weekends that have no regular schedule blocks —
+                    # they stay as plain SATURDAY / SUNDAY rows.
+                    if is_weekend and not sched.get(day_key):
+                        cur += timedelta(days=1)
+                        continue
+
                     special_days[cur.strftime("%Y-%m-%d")] = {
                         "type":     "related_activities",
                         "label":    "",

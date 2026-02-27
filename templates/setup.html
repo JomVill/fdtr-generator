@@ -66,6 +66,15 @@
         Your schedule is saved automatically to this browser.
       </p>
 
+      <!-- Preset bar: save / load named schedules -->
+      <div class="preset-bar">
+        <label for="preset-select">Saved schedules:</label>
+        <select id="preset-select" class="preset-select"></select>
+        <button type="button" class="btn-sm" id="btn-load-preset">Load</button>
+        <button type="button" class="btn-sm" id="btn-save-preset">Save as…</button>
+        <button type="button" class="btn-sm btn-sm-danger" id="btn-del-preset">Delete</button>
+      </div>
+
       <!-- Calendar widget renders here -->
       <div id="cal-container"></div>
     </section>
