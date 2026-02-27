@@ -74,7 +74,7 @@
     <section class="card card-action">
       <div class="action-btn-row">
         <button type="button" class="btn btn-secondary btn-lg" id="save-btn"
-                onclick="saveProfile(); this.textContent='✓ Saved'; setTimeout(() => this.textContent='Save', 1800)">
+                onclick="saveProfile(); if(window.calendarWidget) calendarWidget.save(); this.textContent='✓ Saved'; setTimeout(() => this.textContent='Save', 1800)">
           Save
         </button>
         <button type="submit" class="btn btn-primary btn-lg btn-generate">

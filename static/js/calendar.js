@@ -1,20 +1,20 @@
 /* ============================================================
    FDTR Calendar Widget  —  Drag-to-Create Weekly Schedule
    Notion / Google Calendar style, vanilla JS
-   v2.1: Saturday + Sunday columns, drag-to-move blocks
+   v2.2: coordinate bug fixed, manual time inputs in popover
    ============================================================ */
 
 (function () {
   "use strict";
 
   // ── Constants ────────────────────────────────────────────────────────────
-  var CAL_START = 6 * 60;   // 6:00 AM in minutes from midnight
-  var CAL_END   = 22 * 60;  // 10:00 PM
-  var TOTAL_MIN = CAL_END - CAL_START;   // 960 min = 16 hours
-  var PX_PER_MIN = 1.0;                  // 1 px / minute → 60 px/hour
-  var TOTAL_H    = TOTAL_MIN * PX_PER_MIN;  // 960 px
-  var SNAP       = 15;                   // snap to 15-min intervals
-  var MIN_DUR    = 30;                   // minimum block duration (min)
+  var CAL_START  = 6 * 60;   // 6:00 AM in minutes from midnight
+  var CAL_END    = 22 * 60;  // 10:00 PM
+  var TOTAL_MIN  = CAL_END - CAL_START;        // 960 min = 16 hours
+  var PX_PER_MIN = 1.0;                        // 1 px / minute → 60 px/hour
+  var TOTAL_H    = TOTAL_MIN * PX_PER_MIN;     // 960 px
+  var SNAP       = 15;                         // snap to 15-min intervals
+  var MIN_DUR    = 30;                         // minimum block duration (min)
 
   var DAYS      = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
   var DAY_SHORT = {
@@ -59,7 +59,7 @@
   }
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
-  // Duration as human-readable string  e.g. 60→"1h", 90→"1h 30m", 45→"45m"
+  // Duration label  e.g. 60→"1h", 90→"1h 30m", 45→"45m"
   function durLabel(dur) {
     var h = Math.floor(dur / 60), m = dur % 60;
     if (h > 0 && m > 0) return h + 'h ' + m + 'm';
@@ -86,7 +86,6 @@
     var pop = document.createElement('div');
     pop.className = 'cal-popover';
 
-    // Category options
     var catOpts = Object.keys(CATEGORIES).map(function(k) {
       return '<option value="' + k + '"' +
              (block.category === k ? ' selected' : '') + '>' +
@@ -95,14 +94,21 @@
 
     pop.innerHTML =
       '<div class="pop-header">' +
-        '<span class="pop-time">' + minTo12(block.start) + ' \u2013 ' + minTo12(block.end) + '</span>' +
+        '<div class="pop-times">' +
+          '<input class="pop-time-input" id="pop-start" type="time" value="' + minToStr(block.start) + '"/>' +
+          '<span class="pop-time-sep">\u2013</span>' +
+          '<input class="pop-time-input" id="pop-end"   type="time" value="' + minToStr(block.end)   + '"/>' +
+        '</div>' +
         '<button class="pop-close" title="Close">\u2715</button>' +
       '</div>' +
       '<div class="pop-body">' +
         '<label class="pop-label">Category</label>' +
         '<select class="pop-select" id="pop-cat">' + catOpts + '</select>' +
-        '<label class="pop-label" style="margin-top:8px">Label <small style="font-weight:400;text-transform:none">(optional)</small></label>' +
-        '<input class="pop-input" id="pop-lbl" type="text" value="' + escHtml(block.label) + '" placeholder="e.g. CS 101"/>' +
+        '<label class="pop-label" style="margin-top:8px">Label ' +
+          '<small style="font-weight:400;text-transform:none">(optional)</small></label>' +
+        '<input class="pop-input" id="pop-lbl" type="text" value="' +
+          escHtml(block.label) + '" placeholder="e.g. CS 101"/>' +
+        '<div class="pop-err" id="pop-err" style="display:none"></div>' +
       '</div>' +
       '<div class="pop-footer">' +
         '<button class="btn-pop-primary">Save</button>' +
@@ -113,9 +119,45 @@
     positionPopover(pop, blockEl);
     activePopover = pop;
 
+    // Clear error styling on input change
+    pop.querySelectorAll('.pop-time-input').forEach(function(inp) {
+      inp.addEventListener('change', function() {
+        inp.style.borderColor = '';
+        pop.querySelector('#pop-err').style.display = 'none';
+      });
+    });
+
     pop.querySelector('.pop-close').addEventListener('click', closePopover);
 
     pop.querySelector('.btn-pop-primary').addEventListener('click', function() {
+      var newStart = strToMin(pop.querySelector('#pop-start').value);
+      var newEnd   = strToMin(pop.querySelector('#pop-end').value);
+      var errEl    = pop.querySelector('#pop-err');
+
+      // Validate
+      if (newEnd <= newStart) {
+        pop.querySelector('#pop-start').style.borderColor = '#dc2626';
+        pop.querySelector('#pop-end').style.borderColor   = '#dc2626';
+        errEl.textContent = 'End must be after start.';
+        errEl.style.display = 'block';
+        return;
+      }
+      if (newEnd - newStart < MIN_DUR) {
+        pop.querySelector('#pop-end').style.borderColor = '#d97706';
+        errEl.textContent = 'Minimum duration is ' + MIN_DUR + ' min.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      // Clamp to calendar bounds
+      newStart = Math.max(CAL_START, Math.min(CAL_END - MIN_DUR, snap(newStart)));
+      newEnd   = Math.max(newStart + MIN_DUR, Math.min(CAL_END, snap(newEnd)));
+
+      if (!overlaps(day, newStart, newEnd, block.id)) {
+        block.start = newStart;
+        block.end   = newEnd;
+      }
+
       block.category = pop.querySelector('#pop-cat').value;
       block.label    = pop.querySelector('#pop-lbl').value.trim();
       renderDay(day);
@@ -130,7 +172,7 @@
       closePopover();
     });
 
-    // Close on outside click (deferred so this mousedown doesn't trigger it)
+    // Close on outside click (defer so this mousedown doesn't trigger it)
     setTimeout(function() {
       document.addEventListener('mousedown', onOutsideClick);
     }, 10);
@@ -152,9 +194,9 @@
     var pw   = 234;
     var left = rect.right + 10;
     var top  = rect.top;
-    if (left + pw > window.innerWidth - 8) { left = rect.left - pw - 10; }
-    if (left < 8) { left = 8; }
-    if (top + 220 > window.innerHeight - 8) { top = window.innerHeight - 228; }
+    if (left + pw > window.innerWidth - 8)  { left = rect.left - pw - 10; }
+    if (left < 8)                            { left = 8; }
+    if (top + 280 > window.innerHeight - 8) { top = window.innerHeight - 288; }
     pop.style.cssText = 'position:fixed;left:' + left + 'px;top:' + top + 'px;';
   }
 
@@ -171,29 +213,28 @@
 
   // ── Render a single block element ────────────────────────────────────────
   function makeBlockEl(day, block) {
-    var cat    = CATEGORIES[block.category] || CATEGORIES.others;
-    var topPx  = minToY(block.start);
-    var htPx   = (block.end - block.start) * PX_PER_MIN;
-    var dur    = block.end - block.start;
-    var lbl    = block.label ? ' \u00B7 ' + block.label : '';
+    var cat   = CATEGORIES[block.category] || CATEGORIES.others;
+    var topPx = minToY(block.start);
+    var htPx  = (block.end - block.start) * PX_PER_MIN;
+    var dur   = block.end - block.start;
+    var lbl   = block.label ? ' \u00B7 ' + block.label : '';
 
     var el = document.createElement('div');
     el.className = 'cal-block';
     el.dataset.id  = block.id;
     el.dataset.day = day;
     el.style.cssText =
-      'top:' + topPx + 'px;' +
-      'height:' + htPx + 'px;' +
-      'background:' + cat.bg + ';' +
-      'border-left-color:' + cat.border + ';' +
-      'color:' + cat.text + ';';
+      'top:'               + topPx      + 'px;' +
+      'height:'            + htPx       + 'px;' +
+      'background:'        + cat.bg     + ';'   +
+      'border-left-color:' + cat.border + ';'   +
+      'color:'             + cat.text   + ';';
 
-    var durStr  = durLabel(dur);
-    var timeStr = minTo12(block.start) + ' \u2013 ' + minTo12(block.end) + ' \u00B7 ' + durStr;
+    var timeStr = minTo12(block.start) + ' \u2013 ' + minTo12(block.end) + ' \u00B7 ' + durLabel(dur);
 
     el.innerHTML =
       '<div class="cal-block-content">' +
-        '<div class="cal-block-cat">' + escHtml(cat.label + lbl) + '</div>' +
+        '<div class="cal-block-cat">'  + escHtml(cat.label + lbl) + '</div>' +
         (dur >= 30 ? '<div class="cal-block-time">' + timeStr + '</div>' : '') +
       '</div>' +
       '<div class="cal-block-resize"></div>';
@@ -206,15 +247,14 @@
       closePopover();
 
       var colBody  = el.closest('.cal-col-body');
-      var scroll   = colBody.closest('.cal-scroll-body');
       var startX   = e.clientX;
       var startY   = e.clientY;
       var moved    = false;
       var blockDur = block.end - block.start;
 
-      // Offset from block top to where we clicked (for natural dragging feel)
-      var colRect    = colBody.getBoundingClientRect();
-      var clickRelY  = e.clientY - colRect.top + (scroll ? scroll.scrollTop : 0);
+      // Where inside the block did we click? (for natural drag feel)
+      // getBoundingClientRect().top already accounts for scroll — NO scrollTop needed
+      var clickRelY  = e.clientY - colBody.getBoundingClientRect().top;
       var dragOffset = clickRelY - minToY(block.start);
 
       function onMove(me) {
@@ -225,36 +265,38 @@
         }
         if (!moved) return;
 
-        var r      = colBody.getBoundingClientRect();
-        var relY   = me.clientY - r.top + (scroll ? scroll.scrollTop : 0);
+        // Re-query rect each move so we're always current even if page scrolls
+        var relY     = me.clientY - colBody.getBoundingClientRect().top;
         var newStart = snap(Math.round(yToMin(relY - dragOffset)));
         newStart = Math.max(CAL_START, Math.min(CAL_END - blockDur, newStart));
-        var newEnd   = newStart + blockDur;
+        var newEnd = newStart + blockDur;
 
         if (!overlaps(day, newStart, newEnd, block.id)) {
           block.start = newStart;
           block.end   = newEnd;
           el.style.top = minToY(newStart) + 'px';
           var timeEl = el.querySelector('.cal-block-time');
-          if (timeEl) { timeEl.textContent = minTo12(block.start) + ' \u2013 ' + minTo12(block.end) + ' \u00B7 ' + durLabel(blockDur); }
+          if (timeEl) {
+            timeEl.textContent = minTo12(block.start) + ' \u2013 ' + minTo12(block.end) +
+                                 ' \u00B7 ' + durLabel(blockDur);
+          }
         }
       }
 
       function onUp() {
         document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onUp);
+        document.removeEventListener('mouseup',  onUp);
         el.classList.remove('cal-block-dragging');
         if (moved) {
           renderDay(day);
           serialize();
         } else {
-          // Pure click — show popover
           showPopover(el, day, block.id);
         }
       }
 
       document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
+      document.addEventListener('mouseup',  onUp);
     });
 
     // ── Resize drag (bottom handle) ────────────────────────────────────────
@@ -263,29 +305,32 @@
       e.stopPropagation();
       e.preventDefault();
       closePopover();
+
       var colBody = el.closest('.cal-col-body');
-      var colRect = colBody.getBoundingClientRect();
-      var scroll  = colBody.closest('.cal-scroll-body');
 
       function onMove(me) {
-        var relY   = me.clientY - colRect.top + (scroll ? scroll.scrollTop : 0);
+        // getBoundingClientRect is live — no scrollTop correction needed
+        var relY   = me.clientY - colBody.getBoundingClientRect().top;
         var newEnd = snap(Math.round(yToMin(relY)));
         newEnd = Math.max(block.start + MIN_DUR, Math.min(CAL_END, newEnd));
         if (!overlaps(day, block.start, newEnd, block.id)) {
           block.end = newEnd;
           el.style.height = ((block.end - block.start) * PX_PER_MIN) + 'px';
           var timeEl = el.querySelector('.cal-block-time');
-          if (timeEl) timeEl.textContent = minTo12(block.start) + ' \u2013 ' + minTo12(block.end) + ' \u00B7 ' + durLabel(block.end - block.start);
+          if (timeEl) {
+            timeEl.textContent = minTo12(block.start) + ' \u2013 ' + minTo12(block.end) +
+                                 ' \u00B7 ' + durLabel(block.end - block.start);
+          }
         }
       }
       function onUp() {
         document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onUp);
+        document.removeEventListener('mouseup',  onUp);
         renderDay(day);
         serialize();
       }
       document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
+      document.addEventListener('mouseup',  onUp);
     });
 
     return el;
@@ -295,10 +340,8 @@
   function renderDay(day) {
     var colBody = document.querySelector('.cal-col-body[data-day="' + day + '"]');
     if (!colBody) return;
-    // Remove existing blocks
     var old = colBody.querySelectorAll('.cal-block');
     for (var i = 0; i < old.length; i++) { old[i].remove(); }
-    // Add fresh
     schedule[day].forEach(function(block) {
       colBody.appendChild(makeBlockEl(day, block));
     });
@@ -307,49 +350,43 @@
 
   // ── Drag-to-create ───────────────────────────────────────────────────────
   function initColDrag(colBody, day) {
-    var phantom  = null;
+    var phantom   = null;
     var dragStart = null;
-    var scroll    = null;
 
     colBody.addEventListener('mousedown', function(e) {
-      // Ignore if clicking on an existing block
       if (e.button !== 0) return;
       if (e.target.closest && e.target.closest('.cal-block')) return;
       e.preventDefault();
       closePopover();
 
-      scroll = colBody.closest('.cal-scroll-body');
-      var colRect = colBody.getBoundingClientRect();
-      var relY    = e.clientY - colRect.top + (scroll ? scroll.scrollTop : 0);
-
+      // getBoundingClientRect already accounts for scroll — correct position
+      var relY  = e.clientY - colBody.getBoundingClientRect().top;
       dragStart = snap(Math.round(yToMin(relY)));
       dragStart = Math.max(CAL_START, Math.min(CAL_END - MIN_DUR, dragStart));
 
       phantom = document.createElement('div');
-      phantom.className = 'cal-phantom';
+      phantom.className    = 'cal-phantom';
       phantom.style.top    = minToY(dragStart) + 'px';
       phantom.style.height = (MIN_DUR * PX_PER_MIN) + 'px';
       colBody.appendChild(phantom);
 
       function onMove(me) {
         if (!phantom) return;
-        var r    = colBody.getBoundingClientRect();
-        var y    = me.clientY - r.top + (scroll ? scroll.scrollTop : 0);
-        var cur  = snap(Math.round(yToMin(y)));
-        var end  = Math.max(dragStart + MIN_DUR, Math.min(CAL_END, cur));
+        var y   = me.clientY - colBody.getBoundingClientRect().top;
+        var cur = snap(Math.round(yToMin(y)));
+        var end = Math.max(dragStart + MIN_DUR, Math.min(CAL_END, cur));
         phantom.style.top    = minToY(dragStart) + 'px';
         phantom.style.height = ((end - dragStart) * PX_PER_MIN) + 'px';
       }
 
       function onUp(me) {
         document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onUp);
+        document.removeEventListener('mouseup',  onUp);
         if (!phantom) return;
         phantom.remove();
         phantom = null;
 
-        var r   = colBody.getBoundingClientRect();
-        var y   = me.clientY - r.top + (scroll ? scroll.scrollTop : 0);
+        var y   = me.clientY - colBody.getBoundingClientRect().top;
         var end = snap(Math.round(yToMin(y)));
         end = Math.max(dragStart + MIN_DUR, Math.min(CAL_END, end));
 
@@ -368,25 +405,22 @@
       }
 
       document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
+      document.addEventListener('mouseup',  onUp);
     });
   }
 
   // ── Build DOM ────────────────────────────────────────────────────────────
   function build(containerEl) {
-    // Load weekend pref first so toggle label is correct on creation
     loadWeekendPref();
 
-    // Toolbar row (above the day headers) — holds weekend toggle on the right
+    // Toolbar — weekend toggle sits top-right above the day headers
     var toolbar = document.createElement('div');
     toolbar.className = 'cal-toolbar';
     var toggleBtn = document.createElement('button');
-    toggleBtn.type = 'button';
+    toggleBtn.type      = 'button';
     toggleBtn.className = 'cal-weekend-toggle';
     updateToggleLabel(toggleBtn);
     toolbar.appendChild(toggleBtn);
-    // Store reference for legend builder (no-op toggle needed there)
-    toolbar._toggleBtn = toggleBtn;
 
     // Header row
     var header = document.createElement('div');
@@ -403,7 +437,7 @@
     var scrollBody = document.createElement('div');
     scrollBody.className = 'cal-scroll-body';
 
-    // Time axis
+    // Time axis — pointer-events:none prevents axis clicks from creating blocks
     var timeAxis = document.createElement('div');
     timeAxis.className = 'cal-time-axis';
     timeAxis.style.height = TOTAL_H + 'px';
@@ -421,11 +455,11 @@
     colsWrap.className = 'cal-cols-wrapper';
 
     DAYS.forEach(function(day) {
-      var col     = document.createElement('div');
+      var col = document.createElement('div');
       col.className = 'cal-col' + (WEEKEND_DAYS[day] ? ' cal-col-weekend' : '');
 
       var colBody = document.createElement('div');
-      colBody.className = 'cal-col-body';
+      colBody.className  = 'cal-col-body';
       colBody.dataset.day = day;
       colBody.style.height = TOTAL_H + 'px';
 
@@ -447,12 +481,12 @@
     // Assemble
     var outer = document.createElement('div');
     outer.className = 'cal-outer';
-    outer.appendChild(toolbar);   // ← toolbar first (above day headers)
+    outer.appendChild(toolbar);
     outer.appendChild(header);
     outer.appendChild(scrollBody);
     containerEl.appendChild(outer);
 
-    // Wire toggle click now that outer exists
+    // Wire toggle
     toggleBtn.addEventListener('click', function() {
       showWeekends = !showWeekends;
       try { localStorage.setItem(LS_WEEKENDS, showWeekends ? 'true' : 'false'); } catch(e) {}
@@ -460,10 +494,9 @@
       updateToggleLabel(toggleBtn);
     });
 
-    // Apply saved preference
     applyWeekendPref(outer);
 
-    // Scroll to 7 AM initially
+    // Scroll to 7 AM on load
     scrollBody.scrollTop = minToY(7 * 60);
   }
 
@@ -510,8 +543,8 @@
     serialize();
   }
 
-  // ── Weekend visibility toggle ─────────────────────────────────────────────
-  var LS_WEEKENDS = 'fdtr_show_weekends';
+  // ── Weekend visibility ────────────────────────────────────────────────────
+  var LS_WEEKENDS  = 'fdtr_show_weekends';
   var showWeekends = true;
 
   function loadWeekendPref() {
@@ -522,39 +555,34 @@
   }
 
   function applyWeekendPref(outerEl) {
-    if (showWeekends) {
-      outerEl.classList.remove('cal-hide-weekends');
-    } else {
-      outerEl.classList.add('cal-hide-weekends');
-    }
+    outerEl.classList.toggle('cal-hide-weekends', !showWeekends);
   }
 
-  // ── Legend builder ───────────────────────────────────────────────────────
+  function updateToggleLabel(btn) {
+    btn.textContent = showWeekends ? '\uD83D\uDDD3 Hide Weekends' : '\uD83D\uDDD3 Show Weekends';
+  }
+
+  // ── Legend ────────────────────────────────────────────────────────────────
   function buildLegend(containerEl) {
     var wrap = document.createElement('div');
     wrap.className = 'cal-legend';
     Object.keys(CATEGORIES).forEach(function(k) {
-      var c   = CATEGORIES[k];
+      var c    = CATEGORIES[k];
       var item = document.createElement('div');
       item.className = 'cal-legend-item';
       item.innerHTML =
-        '<div class="cal-legend-dot" style="background:' + c.bg + ';border:2px solid ' + c.border + '"></div>' +
+        '<div class="cal-legend-dot" style="background:' + c.bg +
+        ';border:2px solid ' + c.border + '"></div>' +
         '<span>' + c.label + '</span>';
       wrap.appendChild(item);
     });
 
-    // Drag hint
     var hint = document.createElement('div');
     hint.className = 'cal-legend-item';
-    hint.style.marginLeft = 'auto';
-    hint.style.color = '#94a3b8';
-    hint.innerHTML = '<small>Drag empty to create &nbsp;·&nbsp; Drag block to move &nbsp;·&nbsp; Drag bottom to resize &nbsp;·&nbsp; Click to edit</small>';
+    hint.style.cssText = 'margin-left:auto;color:#94a3b8';
+    hint.innerHTML = '<small>Drag empty to create &nbsp;\u00B7&nbsp; Drag block to move &nbsp;\u00B7&nbsp; Drag bottom to resize &nbsp;\u00B7&nbsp; Click to edit</small>';
     wrap.appendChild(hint);
     containerEl.appendChild(wrap);
-  }
-
-  function updateToggleLabel(btn) {
-    btn.textContent = showWeekends ? '🗓 Hide Weekends' : '🗓 Show Weekends';
   }
 
   // ── Public API ───────────────────────────────────────────────────────────
@@ -562,9 +590,14 @@
     build: function(containerEl, initialData) {
       build(containerEl);
       buildLegend(containerEl);
-      if (initialData) { load(initialData); }
+      if (initialData) {
+        load(initialData);
+      } else {
+        serialize();   // ensure hidden field + localStorage always populated
+      }
     },
-    load: load,
+    load:        load,
+    save:        serialize,   // exposed so Save button can call calendarWidget.save()
     getSchedule: function() {
       var result = {};
       DAYS.forEach(function(day) {

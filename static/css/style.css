@@ -240,18 +240,16 @@ main { flex: 1; padding: 2rem 1.5rem 3rem; }
   margin-top: 1.5rem;
 }
 
-/* Standalone action card — wraps the submit button as its own independent block */
+/* Standalone action card — no background, just centred spacing */
 .card.card-action {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: .75rem;
-  background: linear-gradient(135deg, var(--brand) 0%, #1e4fa8 100%);
-  border-color: transparent;
-  padding: 2rem 1.5rem;
-}
-.card.card-action .form-hint {
-  color: rgba(255,255,255,.7);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 1.75rem 1.5rem 1rem;
 }
 .action-btn-row {
   display: flex;
@@ -460,13 +458,14 @@ main { flex: 1; padding: 2rem 1.5rem 3rem; }
   max-height: 480px;
 }
 
-/* Time axis */
+/* Time axis — pointer-events:none prevents clicking the axis from creating blocks */
 .cal-time-axis {
   width: 54px;
   flex-shrink: 0;
   position: relative;
   background: var(--gray-50);
   border-right: 1px solid var(--gray-200);
+  pointer-events: none;
 }
 .cal-time-label {
   position: absolute;
@@ -475,6 +474,7 @@ main { flex: 1; padding: 2rem 1.5rem 3rem; }
   color: var(--gray-400);
   transform: translateY(-50%);
   white-space: nowrap;
+  pointer-events: none;
 }
 
 /* Day columns wrapper */
@@ -635,7 +635,43 @@ main { flex: 1; padding: 2rem 1.5rem 3rem; }
   background: var(--gray-50);
   border-radius: var(--r) var(--r) 0 0;
 }
-.pop-time { font-weight: 600; font-size: .8rem; color: var(--gray-700); }
+/* Popover time inputs row */
+.pop-times {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  flex: 1;
+}
+.pop-time-input {
+  flex: 1;
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  border: 1.5px solid var(--gray-300);
+  border-radius: var(--r-sm);
+  padding: .2rem .35rem;
+  background: var(--surface);
+  font-family: var(--font);
+  min-width: 0;
+  cursor: text;
+}
+.pop-time-input:focus {
+  outline: none;
+  border-color: var(--brand-mid);
+  box-shadow: 0 0 0 2px rgba(37,99,235,.12);
+}
+.pop-time-sep {
+  font-size: .8rem;
+  color: var(--gray-400);
+  flex-shrink: 0;
+}
+/* Inline error message inside popover */
+.pop-err {
+  margin-top: .45rem;
+  font-size: .72rem;
+  color: var(--danger);
+  font-weight: 500;
+}
 .pop-close {
   background: none; border: none; color: var(--gray-400);
   cursor: pointer; font-size: .85rem; padding: .1rem .3rem; border-radius: 4px;
