@@ -237,7 +237,9 @@ main { flex: 1; padding: 2rem 1.5rem 3rem; }
   flex-direction: column;
   align-items: center;
   gap: .75rem;
-  margin-top: 1.5rem;
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 2px solid var(--border);
 }
 
 
@@ -406,6 +408,16 @@ main { flex: 1; padding: 2rem 1.5rem 3rem; }
   user-select: none;
 }
 
+/* Toolbar: sits above the header row, contains weekend toggle */
+.cal-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: .4rem .6rem;
+  background: var(--brand);
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+
 /* Day-name header row */
 .cal-header-row {
   display: flex;
@@ -563,26 +575,25 @@ main { flex: 1; padding: 2rem 1.5rem 3rem; }
 /* Weekend header: slightly dimmer */
 .cal-day-header-weekend { opacity: .72; }
 
-/* Weekend toggle button */
+/* Weekend toggle button — lives in the navy toolbar */
 .cal-weekend-toggle {
   display: flex;
   align-items: center;
   gap: .3rem;
-  font-size: .72rem;
+  font-size: .7rem;
   font-family: var(--font);
   font-weight: 600;
-  color: var(--brand);
-  background: var(--brand-light, #eff6ff);
-  border: 1px solid var(--brand-mid, #93c5fd);
+  color: rgba(255,255,255,.9);
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.25);
   border-radius: 20px;
-  padding: .25rem .7rem;
+  padding: .22rem .65rem;
   cursor: pointer;
-  transition: background .15s, color .15s;
+  transition: background .15s;
   white-space: nowrap;
 }
 .cal-weekend-toggle:hover {
-  background: var(--brand);
-  color: #fff;
+  background: rgba(255,255,255,.22);
 }
 
 /* Popover */

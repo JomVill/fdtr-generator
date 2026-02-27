@@ -374,6 +374,20 @@
 
   // ── Build DOM ────────────────────────────────────────────────────────────
   function build(containerEl) {
+    // Load weekend pref first so toggle label is correct on creation
+    loadWeekendPref();
+
+    // Toolbar row (above the day headers) — holds weekend toggle on the right
+    var toolbar = document.createElement('div');
+    toolbar.className = 'cal-toolbar';
+    var toggleBtn = document.createElement('button');
+    toggleBtn.type = 'button';
+    toggleBtn.className = 'cal-weekend-toggle';
+    updateToggleLabel(toggleBtn);
+    toolbar.appendChild(toggleBtn);
+    // Store reference for legend builder (no-op toggle needed there)
+    toolbar._toggleBtn = toggleBtn;
+
     // Header row
     var header = document.createElement('div');
     header.className = 'cal-header-row';
@@ -433,12 +447,20 @@
     // Assemble
     var outer = document.createElement('div');
     outer.className = 'cal-outer';
+    outer.appendChild(toolbar);   // ← toolbar first (above day headers)
     outer.appendChild(header);
     outer.appendChild(scrollBody);
     containerEl.appendChild(outer);
 
-    // Apply weekend visibility preference
-    loadWeekendPref();
+    // Wire toggle click now that outer exists
+    toggleBtn.addEventListener('click', function() {
+      showWeekends = !showWeekends;
+      try { localStorage.setItem(LS_WEEKENDS, showWeekends ? 'true' : 'false'); } catch(e) {}
+      applyWeekendPref(outer);
+      updateToggleLabel(toggleBtn);
+    });
+
+    // Apply saved preference
     applyWeekendPref(outer);
 
     // Scroll to 7 AM initially
@@ -520,20 +542,6 @@
         '<span>' + c.label + '</span>';
       wrap.appendChild(item);
     });
-
-    // Weekend toggle button
-    var toggleBtn = document.createElement('button');
-    toggleBtn.type = 'button';
-    toggleBtn.className = 'cal-weekend-toggle';
-    updateToggleLabel(toggleBtn);
-    toggleBtn.addEventListener('click', function() {
-      showWeekends = !showWeekends;
-      try { localStorage.setItem(LS_WEEKENDS, showWeekends ? 'true' : 'false'); } catch(e) {}
-      var outer = containerEl.querySelector('.cal-outer');
-      if (outer) applyWeekendPref(outer);
-      updateToggleLabel(toggleBtn);
-    });
-    wrap.appendChild(toggleBtn);
 
     // Drag hint
     var hint = document.createElement('div');
