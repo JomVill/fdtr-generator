@@ -18,9 +18,19 @@
     <!-- Hidden field: calendar widget serialises schedule here -->
     <input type="hidden" id="schedule-json" name="schedule_json" value="">
 
-    <!-- ── Faculty Information ────────────────────────────────────────────── -->
+    <!-- Faculty Information -->
     <section class="card">
-      <h2 class="card-title">👤 Faculty Information</h2>
+      <h2 class="card-title">
+        <span class="card-title-icon">
+          <!-- Person icon -->
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </span>
+        Faculty Information
+      </h2>
       <div class="form-row">
         <div class="form-group">
           <label for="faculty_name">Full Name (with suffix / degree)</label>
@@ -56,9 +66,43 @@
       </div>
     </section>
 
-    <!-- ── Weekly Schedule — Calendar view ───────────────────────────────── -->
+    <!-- Weekly Schedule — Calendar view -->
     <section class="cal-section">
-      <h2 class="card-title">🗓 Weekly Schedule</h2>
+      <h2 class="card-title">
+        <span class="card-title-icon">
+          <!-- Calendar icon -->
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </span>
+        Weekly Schedule
+      </h2>
+
+      <!-- Portal tip -->
+      <div class="callout">
+        <strong>Where to get your class schedule:</strong>
+        Log in to the MSU-IIT portal at
+        <a href="https://myiit.msuiit.edu.ph/my/v2/index.php" target="_blank" rel="noopener">
+          myiit.msuiit.edu.ph
+          <!-- External link icon -->
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+               style="display:inline;vertical-align:middle;margin-left:1px" aria-hidden="true">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        </a>,
+        then go to <strong>Academics &gt; Class Schedule</strong>.
+        Note your assigned subjects, days, and times, then replicate them below by dragging blocks on the
+        corresponding day columns. Add any administrative or research load as additional blocks under
+        the <em>Others</em> or <em>Related Activities</em> categories.
+      </div>
+
       <p class="cal-hint">
         <strong>Click and drag</strong> on a day column to create a time block.
         <strong>Click a block</strong> to set its category and label.
@@ -71,7 +115,7 @@
         <label for="preset-select">Saved schedules:</label>
         <select id="preset-select" class="preset-select"></select>
         <button type="button" class="btn-sm" id="btn-load-preset">Load</button>
-        <button type="button" class="btn-sm" id="btn-save-preset">Save as…</button>
+        <button type="button" class="btn-sm" id="btn-save-preset">Save as&hellip;</button>
         <button type="button" class="btn-sm btn-sm-danger" id="btn-del-preset">Delete</button>
       </div>
 
@@ -79,19 +123,32 @@
       <div id="cal-container"></div>
     </section>
 
-    <!-- Save / Continue — two independent buttons -->
+    <!-- Save / Continue -->
     <section class="card card-action">
       <div class="action-btn-row">
         <button type="button" class="btn btn-secondary btn-lg" id="save-btn"
-                onclick="saveProfile(); if(window.calendarWidget) calendarWidget.save(); this.textContent='✓ Saved'; setTimeout(() => this.textContent='Save', 1800)">
+                onclick="saveProfile(); if(window.calendarWidget) calendarWidget.save(); this.textContent='Saved'; setTimeout(() => this.textContent='Save', 1800)">
+          <!-- Save/floppy icon -->
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
           Save
         </button>
         <button type="submit" class="btn btn-primary btn-lg btn-generate">
-          Continue →
+          Continue
+          <!-- Arrow right -->
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
         </button>
       </div>
       <p class="form-hint center-hint">
-        Profile &amp; schedule are saved in your browser — they'll be here next time.
+        Profile &amp; schedule are saved in your browser — they will be here next time.
       </p>
     </section>
 

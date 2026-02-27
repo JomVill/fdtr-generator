@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>{% block title %}FDTR Generator{% endblock %} — MSU-IIT</title>
+  <title>{% block title %}Faculty Daily Time Record{% endblock %} — MSU-IIT</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,20 +13,39 @@
 
 <nav class="navbar">
   <a href="{{ url_for('index') }}" class="nav-brand">
-    <span class="nav-brand-icon">📋</span> FDTR Generator
+    <span class="nav-brand-icon">
+      <!-- Document / time-record icon -->
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <line x1="10" y1="9" x2="8" y2="9"/>
+      </svg>
+    </span>
+    Faculty Daily Time Record
   </a>
+
   <div class="nav-links">
     <a href="{{ url_for('setup') }}"
        class="nav-link {% if request.endpoint == 'setup' %}active{% endif %}">
-      ① Setup
+      <span class="nav-step-num">1</span> Setup
     </a>
     <a href="{{ url_for('generate') }}"
        class="nav-link {% if request.endpoint in ('generate', 'preview') %}active{% endif %}">
-      ② Generate
+      <span class="nav-step-num">2</span> Generate
     </a>
   </div>
-  <a href="{{ url_for('reset') }}" class="nav-reset" title="Clear session &amp; start over">
-    ↺ Reset
+
+  <a href="{{ url_for('reset') }}" class="nav-reset" title="Clear session and start over">
+    <!-- Refresh / reset icon -->
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="1 4 1 10 7 10"/>
+      <path d="M3.51 15a9 9 0 1 0 .49-3.21"/>
+    </svg>
+    Reset
   </a>
 </nav>
 
@@ -34,10 +53,17 @@
   {% block content %}{% endblock %}
 </main>
 
-<!-- ── Disclaimer Footer ──────────────────────────────────────────────────── -->
+<!-- Disclaimer Footer -->
 <footer class="site-footer">
   <p>
-    <span class="disclaimer-icon">⚠</span>
+    <span class="disclaimer-icon" aria-hidden="true">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    </span>
     <strong>This is an unofficial tool.</strong>
     Not affiliated with or endorsed by MSU-IIT or the Mindanao State University system.
     All data is stored <em>only</em> in your browser — nothing is sent to any server.

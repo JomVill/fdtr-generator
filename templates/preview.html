@@ -1,18 +1,25 @@
 {% extends "base.html" %}
-{% block title %}Preview FDTR — {{ preview.month_name }} {{ preview.year }}{% endblock %}
+{% block title %}Preview — {{ preview.month_name }} {{ preview.year }}{% endblock %}
 
 {% block content %}
 <div class="preview-page">
 
-  <!-- ── Action bar (top) ───────────────────────────────────────────────── -->
+  <!-- Action bar (top) -->
   <div class="preview-actions">
     <a href="{{ url_for('generate') }}" class="btn btn-secondary">
-      ← Back to Edit
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="19" y1="12" x2="5" y2="12"/>
+        <polyline points="12 19 5 12 12 5"/>
+      </svg>
+      Back to Edit
     </a>
+
     <div class="preview-title-block">
       <h1 class="preview-title">FDTR Preview</h1>
-      <span class="preview-sub">{{ preview.month_name }} {{ preview.year }} — {{ preview.faculty_name }}</span>
+      <span class="preview-sub">{{ preview.month_name }} {{ preview.year }} &mdash; {{ preview.faculty_name }}</span>
     </div>
+
     <form action="{{ url_for('download') }}" method="POST" id="download-form">
       <!-- Faculty / schedule (session-resilience) -->
       <input type="hidden" name="hf_faculty_name" value="{{ form_data.faculty_name }}">
@@ -37,12 +44,18 @@
       {% for v in form_data.rel_time_outs  %}<input type="hidden" name="related_time_out[]"  value="{{ v }}">{% endfor %}
 
       <button type="submit" class="btn btn-primary" id="download-btn">
-        ⬇ Download FDTR
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download FDTR
       </button>
     </form>
   </div>
 
-  <!-- ── Legend ─────────────────────────────────────────────────────────── -->
+  <!-- Legend -->
   <div class="preview-legend">
     <span class="legend-item legend-regular">Regular Day</span>
     <span class="legend-item legend-related">Related Activities</span>
@@ -52,7 +65,7 @@
     <span class="legend-item legend-travel">Travel</span>
   </div>
 
-  <!-- ── FDTR Table (generous padding via .fdtr-scroll) ─────────────────── -->
+  <!-- FDTR Table -->
   <div class="fdtr-scroll">
     <table class="fdtr-table">
 
@@ -95,7 +108,7 @@
       <tbody>
         {% for row in preview.days %}
 
-          {# ── Special day (weekend / holiday / leave / travel) ── #}
+          {# Special day (weekend / holiday / leave / travel) #}
           {% if row.type == "special" %}
           <tr class="day-row day-{{ row.day_class }}">
             <td class="td-day">{{ row.day }}</td>
@@ -105,7 +118,7 @@
             </td>
           </tr>
 
-          {# ── Regular / Related Activities (2 sub-rows) ── #}
+          {# Regular / Related Activities (2 sub-rows) #}
           {% else %}
           <tr class="day-row day-{{ row.day_class }}">
             <td class="td-day" rowspan="2">{{ row.day }}</td>
@@ -156,13 +169,24 @@
     </table>
   </div>
 
-  <!-- ── Action bar (bottom) ───────────────────────────────────────────── -->
+  <!-- Action bar (bottom) -->
   <div class="preview-actions preview-actions-bottom">
     <a href="{{ url_for('generate') }}" class="btn btn-secondary">
-      ← Back to Edit
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="19" y1="12" x2="5" y2="12"/>
+        <polyline points="12 19 5 12 12 5"/>
+      </svg>
+      Back to Edit
     </a>
     <button type="submit" form="download-form" class="btn btn-primary">
-      ⬇ Download FDTR
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Download FDTR
     </button>
   </div>
 
@@ -171,7 +195,7 @@
 <!-- Loading overlay -->
 <div class="loading-overlay" id="loading-overlay">
   <div class="spinner"></div>
-  <p class="loading-text">Generating your FDTR… please wait</p>
+  <p class="loading-text">Generating your FDTR&hellip; please wait</p>
 </div>
 {% endblock %}
 

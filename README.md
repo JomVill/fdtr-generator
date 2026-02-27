@@ -1,4 +1,4 @@
-# 📋 FDTR Generator
+# Faculty Daily Time Record
 
 **Faculty Daily Time Record generator for MSU-IIT faculty.**
 Fill in your profile once, then generate a correctly-formatted FDTR Excel file for any month in seconds — preview it in the browser before you download.
@@ -125,24 +125,38 @@ Open your browser at **http://localhost:5050**
 
 ### Step 1 — Set up your profile
 
-Fill in your faculty information, then build your **weekly schedule** using the visual calendar:
+Fill in your faculty information, then build your **weekly schedule** using the visual calendar.
+
+#### Getting your class schedule from the MSU-IIT portal
+
+Before filling in the calendar, retrieve your official class assignments:
+
+1. Log in to the MSU-IIT portal at **[myiit.msuiit.edu.ph/my/v2/index.php](https://myiit.msuiit.edu.ph/my/v2/index.php)**
+2. Navigate to **Academics > Class Schedule**
+3. Note each subject's assigned **day(s)**, **time-in**, and **time-out**
+4. Back in the app, replicate each class block by **dragging** on the corresponding day column in the weekly calendar
+5. For **administrative load, research, or other duties** not listed under class schedule, add additional blocks manually using the *Others* or *Related Activities* category
+
+> If your schedule includes a time slot not covered by your portal class schedule — such as department meetings, research time, or an admin assignment — use a custom block to record it accurately.
+
+#### Using the calendar
 
 - **Drag** on any day column to create a new time block
 - **Click** an existing block to edit its label or category
-- **Drag** the top or bottom edge of a block to resize it
+- **Drag** the bottom edge of a block to resize it
 
 Each time block belongs to one of four categories:
 
 | Category | Excel Columns | Typical Use |
 |---|---|---|
-| Class | B – D | Teaching hours |
+| Class | B – D | Teaching hours (replicate from portal class schedule) |
 | Consultation | E – G | Student consultation |
 | Related Activities | H – J | Admin work, research, etc. |
 | Others (Adm., R&E) | K – M | Other duties |
 
 **Save a preset** — give your schedule a name and reload it anytime from the *Saved schedules* dropdown.
 
-Click **Save Profile & Go to Generate →** when done.
+Click **Save Profile & Continue** when done.
 Your profile is **saved for the entire session** — you only need to enter it once.
 
 ---
