@@ -189,6 +189,13 @@ function restoreMonthYear() {
 }
 
 /* ── Per-month Step-2 form data ─────────────────────────────────── */
+
+// Tracks which month key is currently displayed in the form.
+// Critically, this is NOT updated until AFTER we've saved the old month's data,
+// so serializeGenerateForm() always writes to the correct (old) key even when
+// the month/year dropdowns have already changed to a new value.
+var _activeMonthKey = null;
+
 function getMonthKey() {
   var m = document.getElementById('month');
   var y = document.getElementById('year');
@@ -222,13 +229,19 @@ function serializeGenerateForm() {
     travel:   getRows('travel-container',   ['travel_start[]','travel_end[]','travel_ta[]']),
     related:  getRows('related-container',  ['related_start[]','related_end[]','related_time_in[]','related_time_out[]']),
   };
-  lsSet(getMonthKey(), JSON.stringify(data));
+  // Use _activeMonthKey if set — it stays pinned to the OLD month even after
+  // the dropdown has already switched, preventing cross-month data leakage.
+  var key = _activeMonthKey || getMonthKey();
+  lsSet(key, JSON.stringify(data));
 }
 
 function restoreGenerateForm() {
   if (!document.getElementById('generate-form')) return;
 
-  var raw = lsGet(getMonthKey());
+  // Advance _activeMonthKey to the month now shown in the dropdowns
+  _activeMonthKey = getMonthKey();
+
+  var raw = lsGet(_activeMonthKey);
 
   // Always clear all containers first — ensures empty state for unconfigured months
   ['holidays','leave','travel','related'].forEach(function(t) {
@@ -267,7 +280,8 @@ function restoreGenerateForm() {
   restoreRows('related',  data.related,  ['related_start[]','related_end[]','related_time_in[]','related_time_out[]']);
   _restoringForm = false;
 
-  // One definitive save after all fields are filled with their correct values
+  // One definitive save after all fields are filled with their correct values.
+  // _activeMonthKey already points to the new month, so this is safe.
   serializeGenerateForm();
 }
 
@@ -328,18 +342,24 @@ function initSetupPage() {
 function initGeneratePage() {
   restoreMonthYear();
   populateHiddenFields();
-  restoreGenerateForm();  // load saved data for current month
+  // restoreGenerateForm() sets _activeMonthKey = getMonthKey() internally,
+  // so it's always initialised before any user interaction can trigger a save.
+  restoreGenerateForm();
 
   var m = document.getElementById('month');
   var y = document.getElementById('year');
 
   function onMonthYearChange() {
-    // 1. Flush current month's data to localStorage BEFORE the key changes
+    // 1. Save current form state to the OLD month key.
+    //    _activeMonthKey still points to the previous month because
+    //    restoreGenerateForm() (which advances it) hasn't run yet.
     serializeGenerateForm();
     // 2. Persist the new month/year selection
     saveMonthYear();
-    // 3. Clear and restore data for the newly selected month/year
-    //    (restoreGenerateForm handles the clearing internally)
+    // 3. Load data for the new month.
+    //    restoreGenerateForm() sets _activeMonthKey = getMonthKey() (new month)
+    //    before reading/restoring, so the subsequent final serializeGenerateForm()
+    //    inside it writes to the new month's key — not the old one.
     restoreGenerateForm();
   }
 
