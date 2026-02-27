@@ -3,10 +3,36 @@
 **Faculty Daily Time Record generator for MSU-IIT faculty.**
 Fill in your profile once, then generate a correctly-formatted FDTR Excel file for any month in seconds — preview it in the browser before you download.
 
+![Version](https://img.shields.io/badge/version-v3.0-brightgreen)
 ![License](https://img.shields.io/badge/license-Personal%20Use-blue)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![Flask](https://img.shields.io/badge/flask-3.x-green)
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)
+
+---
+
+## 🆕 What's New in v3.0
+
+### Visual Calendar Scheduler
+- **Drag-to-create blocks** on the weekly schedule grid — click and drag to define a time slot visually
+- **Overlap layout** — side-by-side blocks render without obscuring each other
+- **Inline editing** — click any block to rename its label or change its category
+- **Named schedule presets** — save your current weekly schedule under a name, reload or delete it anytime from a dropdown
+
+### Per-Month Form Memory
+- Step 2 (holidays, leave, travel, suspensions) is now **saved per month/year**
+- Switching between months automatically saves the current month's data and restores the selected month's data
+- Empty months start blank — no accidental cross-month data bleed
+
+### Smarter Class Suspension / Related Activities
+- Suspension date ranges now **skip weekends automatically** when those days have no scheduled blocks — weekends without classes stay as plain SATURDAY / SUNDAY rows in the FDTR
+- Optional **custom time-in/out** per suspension period (click *+ Add time* to expand the time fields)
+
+### UI Improvements
+- Wider **1 100 px** page container for the calendar grid
+- Holidays section merged inside the Class Suspension card for a cleaner layout
+- **← Back to Schedule** button on Step 2 to return without losing data
+- Time-slot toggle on suspension rows hides the time inputs until needed
 
 ---
 
@@ -15,11 +41,14 @@ Fill in your profile once, then generate a correctly-formatted FDTR Excel file f
 | Feature | Description |
 |---|---|
 | **Profile setup** | Enter your name, designation, department, and department head once — saved for the session |
-| **Weekly schedule builder** | Define time slots per weekday with category (Class, Consultation, Related Activities, Others) |
+| **Visual calendar scheduler** | Drag to create and resize time blocks on a Mon–Fri grid; overlap-aware layout |
+| **Named schedule presets** | Save, load, and delete named weekly schedule configurations |
+| **Per-month Step-2 data** | Holidays, leave, travel, and suspension data are independently persisted per month/year |
 | **Holidays** | Mark public/special non-working days with a custom label |
-| **Leave days** | Tag individual days as Sick Leave, Vacation Leave, etc. |
-| **Official Travel** | Enter Travel Authority (TA) number and date range; all days are auto-labelled |
-| **Class Suspension / Related Activities** | Date ranges where classes are suspended but faculty still reports — time is logged under the *Related Activities* columns |
+| **Leave days** | Tag individual days as one of 17 supported leave types |
+| **Official Travel** | Enter Travel Authority (TA) number and date range; all days in range are auto-labelled |
+| **Class Suspension / Related Activities** | Date ranges where classes are suspended — time is logged under *Related Activities* columns; weekends without schedule blocks are automatically skipped |
+| **Custom suspension times** | Optionally override time-in/out for each suspension period |
 | **Live preview** | Color-coded HTML table in the browser before you download |
 | **Excel output** | Exact MSU-IIT FDTR format — Times New Roman font, correct borders, column widths, merged cells |
 
@@ -96,7 +125,13 @@ Open your browser at **http://localhost:5050**
 
 ### Step 1 — Set up your profile
 
-Fill in your faculty information and weekly schedule. Each time slot needs a **Time In**, **Time Out**, and a **category**:
+Fill in your faculty information, then build your **weekly schedule** using the visual calendar:
+
+- **Drag** on any day column to create a new time block
+- **Click** an existing block to edit its label or category
+- **Drag** the top or bottom edge of a block to resize it
+
+Each time block belongs to one of four categories:
 
 | Category | Excel Columns | Typical Use |
 |---|---|---|
@@ -105,6 +140,8 @@ Fill in your faculty information and weekly schedule. Each time slot needs a **T
 | Related Activities | H – J | Admin work, research, etc. |
 | Others (Adm., R&E) | K – M | Other duties |
 
+**Save a preset** — give your schedule a name and reload it anytime from the *Saved schedules* dropdown.
+
 Click **Save Profile & Go to Generate →** when done.
 Your profile is **saved for the entire session** — you only need to enter it once.
 
@@ -112,7 +149,14 @@ Your profile is **saved for the entire session** — you only need to enter it o
 
 ### Step 2 — Generate a month
 
-Select the **month** and **year**, then add any special days:
+Select the **month** and **year**. Your inputs are **saved per month** — switching months preserves each month's data independently.
+
+#### 📋 Class Suspension / Related Activities
+For days when classes are suspended but you still report for work:
+Click **+ Add Suspension / Related Activity Period** and set the date range.
+Your regular weekly schedule is used, but all time slots are recorded under the **Related Activities** (H–J) columns instead of their usual columns.
+- Weekends with **no scheduled blocks** are automatically skipped (they remain plain SATURDAY / SUNDAY rows).
+- Click **+ Add time** to specify a custom time-in/out for that suspension period.
 
 #### 🏖 Holidays
 Click **+ Add Holiday**, pick the date, and type the label (e.g. `RIZAL DAY`).
@@ -124,11 +168,6 @@ Click **+ Add Leave Day**, pick the date, and select the leave type from the dro
 #### ✈️ Official Travel
 Click **+ Add Travel Period**, set the date range, and enter the TA number.
 Every day in the range is automatically labelled `ON TRAVEL, TA NO: …`.
-
-#### 📋 Class Suspension / Related Activities
-For days when classes are suspended but you still report for work:
-Click **+ Add Suspension / Related Activity Period** and set the date range.
-Your regular weekly schedule is used, but all time slots are recorded under the **Related Activities** (H–J) columns instead of their usual columns.
 
 Click **👁 Preview FDTR** when done.
 
@@ -167,12 +206,38 @@ fdtr-generator/
 │   └── preview.html        # Step 3 — preview table + download
 ├── static/
 │   ├── css/style.css
-│   └── js/app.js
+│   └── js/
+│       ├── app.js          # localStorage persistence, dynamic rows, presets
+│       └── calendar.js     # Visual calendar widget (drag-to-create, overlap layout)
 ├── requirements.txt
 ├── Procfile                # Railway.app / Heroku deployment
 ├── .env.example
 └── LICENSE
 ```
+
+---
+
+## 📋 Changelog
+
+### v3.0 (2026-02-28)
+- **Visual calendar widget** with drag-to-create blocks and overlap layout
+- **Named schedule presets** — save, load, delete weekly schedule configurations
+- **Per-month Step-2 persistence** — each month/year remembers its own holidays, leave, travel, and suspension data independently
+- **Weekend-skip for class suspensions** — ranges no longer override empty weekend days
+- **Custom time-in/out** on suspension rows (optional toggle)
+- Holidays section merged inside Class Suspension card
+- Back button on Step 2 (preserves data)
+- Wider 1 100 px container layout
+
+### v2.0
+- Interactive HTML preview before Excel download
+- Session-resilient hidden form fields for faculty data
+- Spinner overlay during preview generation
+- Per-page localStorage persistence for profile and schedule
+
+### v1.0
+- Initial release — Flask app with session-based FDTR Excel generation
+- Exact MSU-IIT format: merged cells, borders, Times New Roman, footer signatures
 
 ---
 
