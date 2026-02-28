@@ -76,30 +76,64 @@ Fill in your profile once, then generate a correctly-formatted FDTR Excel file f
 
 ### Prerequisites
 
-- Python **3.11** or later
-- `pip` (comes with Python)
+- Python **3.11** or later — download from [python.org](https://www.python.org/downloads/)
+- `pip` (bundled with Python)
+
+> **Windows:** During installation, check **"Add Python to PATH"** so `python` and `pip` work from any terminal.
+
+---
 
 ### 1 — Clone the repository
 
+**macOS / Linux (Terminal):**
 ```bash
 git clone https://github.com/JomVill/fdtr-generator.git
 cd fdtr-generator
 ```
 
+**Windows (Command Prompt or PowerShell):**
+```cmd
+git clone https://github.com/JomVill/fdtr-generator.git
+cd fdtr-generator
+```
+
+> Don't have Git? Download it from [git-scm.com](https://git-scm.com/download/win) (Windows) or install via `brew install git` (macOS).
+
+---
+
 ### 2 — Create a virtual environment
 
+**macOS / Linux:**
 ```bash
-python -m venv venv
-source venv/bin/activate        # macOS / Linux
-# venv\Scripts\activate         # Windows
+python3 -m venv venv
+source venv/bin/activate
 ```
+
+**Windows (Command Prompt):**
+```cmd
+python -m venv venv
+venv\Scripts\activate
+```
+
+**Windows (PowerShell):**
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+```
+
+> **PowerShell note:** If you get a script execution error, run this once to allow local scripts:
+> ```powershell
+> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+> ```
 
 > **macOS note:** If your project folder path contains a colon (`:`), create the venv
 > outside the project:
 > ```bash
-> python -m venv ~/Developer/fdtr_venv
+> python3 -m venv ~/Developer/fdtr_venv
 > source ~/Developer/fdtr_venv/bin/activate
 > ```
+
+---
 
 ### 3 — Install dependencies
 
@@ -107,12 +141,30 @@ source venv/bin/activate        # macOS / Linux
 pip install -r requirements.txt
 ```
 
+*(Same command on macOS, Linux, and Windows once the virtual environment is active.)*
+
+---
+
 ### 4 — Configure environment
 
+**macOS / Linux:**
 ```bash
 cp .env.example .env
-# Open .env and set a strong SECRET_KEY for production
 ```
+
+**Windows (Command Prompt):**
+```cmd
+copy .env.example .env
+```
+
+**Windows (PowerShell):**
+```powershell
+Copy-Item .env.example .env
+```
+
+Open `.env` in any text editor (Notepad, VS Code, etc.) and set a strong `SECRET_KEY` for production use.
+
+---
 
 ### 5 — Run the app
 
@@ -121,6 +173,8 @@ python app.py
 ```
 
 Open your browser at **http://localhost:5050**
+
+> **Windows firewall:** If prompted by Windows Defender Firewall, click **Allow access** so the local server can run.
 
 ---
 
