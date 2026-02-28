@@ -178,6 +178,33 @@ Open your browser at **http://localhost:5050**
 
 ---
 
+### 6 — (Optional) Share with colleagues via Cloudflare Tunnel
+
+Want colleagues to test without deploying to the cloud? Run a free Cloudflare Tunnel from your laptop — no account required.
+
+**Install `cloudflared` once:**
+
+| Platform | Command |
+|---|---|
+| macOS (Homebrew) | `brew install cloudflare/cloudflare/cloudflared` |
+| Windows (winget) | `winget install Cloudflare.cloudflared` |
+| Windows (Scoop) | `scoop install cloudflared` |
+| Linux | [Download from Cloudflare](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) |
+
+**Then, while `python app.py` is running, open a second terminal:**
+
+```bash
+cloudflared tunnel --url http://localhost:5050
+```
+
+Cloudflare prints a public URL like `https://random-words.trycloudflare.com`.
+Share it — colleagues open it in any browser, nothing to install on their end.
+Their profile and schedule are saved in **their own browser** (localStorage).
+
+> The URL changes each time you restart the tunnel. For a permanent link, see the [Deployment](#️-deployment) section below.
+
+---
+
 ## 🗺️ How to Use
 
 ### Step 1 — Set up your profile
@@ -281,7 +308,8 @@ fdtr-generator/
 │       ├── app.js          # localStorage persistence, dynamic rows, presets
 │       └── calendar.js     # Visual calendar widget (drag-to-create, overlap layout)
 ├── requirements.txt
-├── Procfile                # Railway.app / Heroku deployment
+├── Procfile                # gunicorn start command (Railway / Render / Heroku)
+├── render.yaml             # One-click Render.com deployment config
 ├── .env.example
 └── LICENSE
 ```
@@ -312,16 +340,35 @@ fdtr-generator/
 
 ---
 
-## ☁️ Deployment (Railway.app)
+## ☁️ Deployment
 
-1. Push the repo to GitHub (already done).
-2. Go to [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub repo**.
-3. Select `fdtr-generator`.
-4. In the Railway dashboard, add an environment variable:
+For a **permanent public URL** (no laptop required, URL never changes), deploy to a free cloud host.
+
+---
+
+### Option A — Render.com (recommended, free)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+
+1. Fork this repo to your own GitHub account.
+2. Click the **Deploy to Render** button above (or go to [render.com](https://render.com) → **New → Web Service** → connect your fork).
+3. Render auto-reads `render.yaml` — no settings to change.
+   The `SECRET_KEY` is **generated automatically**.
+4. Click **Deploy**. Your app is live at `https://your-service.onrender.com`.
+
+> **Free tier note:** The service spins down after 15 minutes of inactivity. The first visit after idle takes ~30 seconds to wake up — this is normal.
+
+---
+
+### Option B — Railway.app
+
+1. Go to [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub repo**.
+2. Select `fdtr-generator`.
+3. In the Railway dashboard, add an environment variable:
    ```
    SECRET_KEY=<your-strong-random-key>
    ```
-5. Railway auto-detects the `Procfile` and deploys. Your app will be live at the assigned `.railway.app` URL.
+4. Railway auto-detects the `Procfile` and deploys. Your app will be live at the assigned `.railway.app` URL.
 
 ---
 
