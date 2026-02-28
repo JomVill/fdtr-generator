@@ -57,15 +57,18 @@ Fill in your profile once, then generate a correctly-formatted FDTR Excel file f
 ## 📸 Screenshots
 
 ### Step 1 — Faculty Profile & Weekly Schedule
-![Setup page](docs/screenshots/01-setup.png)
+![Setup page — faculty info and portal callout](docs/screenshots/01-setup.png)
 
-### Step 2 — Configure Month, Holidays & Special Days
-![Generate page – filled](docs/screenshots/03-generate-filled.png)
+### Step 1 — Weekly Schedule Calendar
+![Setup page — calendar widget with schedule blocks](docs/screenshots/02-setup-calendar.png)
+
+### Step 2 — Generate Monthly Record
+![Generate page — month selection and special day cards](docs/screenshots/03-generate-top.png)
 
 ### Step 3 — Preview Before Downloading
-![Preview page – top](docs/screenshots/04-preview-top.png)
+![Preview page — action bar and FDTR table header](docs/screenshots/05-preview-top.png)
 
-![Preview page – mid (showing holiday row)](docs/screenshots/05-preview-mid.png)
+![Preview page — FDTR table showing day rows](docs/screenshots/06-preview-table.png)
 
 ---
 
