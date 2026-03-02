@@ -338,6 +338,43 @@ function initSetupPage() {
   }
 }
 
+/* ── Schedule export / import ───────────────────────────────────── */
+function exportSchedule() {
+  if (window.calendarWidget) calendarWidget.save();
+  var sched = lsGet(LS_SCHEDULE);
+  if (!sched) { alert('No schedule saved yet — draw some blocks first.'); return; }
+  var blob = new Blob([sched], { type: 'application/json' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'fdtr-schedule.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importSchedule(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var parsed = JSON.parse(e.target.result);
+      var days   = ['monday','tuesday','wednesday','thursday','friday'];
+      var valid  = parsed && typeof parsed === 'object' &&
+                   days.some(function(d) { return Array.isArray(parsed[d]); });
+      if (!valid) throw new Error('invalid');
+      lsSet(LS_SCHEDULE, JSON.stringify(parsed));
+      if (window.calendarWidget) calendarWidget.load(parsed);
+    } catch(err) {
+      alert('Invalid file — please use a schedule exported from this app.');
+    }
+    input.value = '';  // allow re-selecting same file
+  };
+  reader.readAsText(file);
+}
+
 /* ── Generate page: explicit Save button ────────────────────────── */
 function saveStep2(btn) {
   serializeGenerateForm();

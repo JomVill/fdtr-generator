@@ -434,6 +434,13 @@ main { flex: 1; padding: 2rem 1.5rem 3rem; }
   color: var(--gray-600);
   white-space: nowrap;
 }
+.preset-bar-sep {
+  width: 1px;
+  height: 1.2rem;
+  background: var(--border);
+  margin: 0 .15rem;
+  flex-shrink: 0;
+}
 
 .preset-select {
   flex: 1;
