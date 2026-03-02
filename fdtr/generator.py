@@ -51,6 +51,12 @@ CATEGORY_COLS = {
 TOTAL_COL = 14   # N
 DAY_COL   = 1    # A
 
+# Default time slots used for Related Activities when no custom time is entered
+DEFAULT_RELATED_SLOTS = [
+    {"time_in": "08:00", "time_out": "12:00", "category": "related_activities", "label": ""},
+    {"time_in": "13:00", "time_out": "17:00", "category": "related_activities", "label": ""},
+]
+
 # Row layout (matches Feb 2026 template)
 COL_HEADER_ROW  = 10   # first column-header block (rows 10-13)
 DATA_START_ROW  = 14   # day 1
@@ -574,8 +580,7 @@ def generate_preview_data(
                     slots = [{"time_in": custom_in, "time_out": custom_out,
                               "category": "related_activities", "label": ""}]
                 else:
-                    weekday_name = WEEKDAY_NAMES[weekday]
-                    slots = weekly_schedule.get(weekday_name, [])
+                    slots = DEFAULT_RELATED_SLOTS
                 rows.append(_build_preview_regular(day, day_date, slots,
                                                     force_category="related_activities"))
             elif day_type in ("leave", "travel"):
@@ -664,15 +669,14 @@ def generate_fdtr(
             label    = entry.get("label", "")
 
             if day_type == "related_activities":
-                # Use custom times if provided, otherwise fall back to weekly schedule
+                # Use custom times if provided, otherwise default to 8–12 and 13–17
                 custom_in  = entry.get("time_in",  "").strip()
                 custom_out = entry.get("time_out", "").strip()
                 if custom_in and custom_out:
                     slots = [{"time_in": custom_in, "time_out": custom_out,
                               "category": "related_activities", "label": ""}]
                 else:
-                    weekday_name = WEEKDAY_NAMES[weekday]
-                    slots = weekly_schedule.get(weekday_name, [])
+                    slots = DEFAULT_RELATED_SLOTS
                 _write_regular_day(ws, base_row, day, slots,
                                    force_category="related_activities")
             elif day_type in ("leave", "travel"):
