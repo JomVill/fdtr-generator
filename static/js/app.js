@@ -338,6 +338,16 @@ function initSetupPage() {
   }
 }
 
+/* ── Generate page: explicit Save button ────────────────────────── */
+function saveStep2(btn) {
+  serializeGenerateForm();
+  if (!btn) return;
+  var origHTML = btn.innerHTML;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Saved';
+  btn.disabled = true;
+  setTimeout(function() { btn.innerHTML = origHTML; btn.disabled = false; }, 1800);
+}
+
 /* ── Generate page init ─────────────────────────────────────────── */
 function initGeneratePage() {
   restoreMonthYear();

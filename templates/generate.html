@@ -81,8 +81,8 @@
       </h2>
       <p class="card-desc">
         Days when classes are suspended but you still report. Time slots will be recorded under
-        <em>Related Activities</em> (H&ndash;J). Optionally set a custom time-in/out — otherwise your
-        regular schedule is used.
+        <em>Related Activities</em> (H&ndash;J). Optionally set a custom time-in/out &mdash; otherwise
+        defaults to <strong>8:00 AM&ndash;12:00 PM</strong> and <strong>1:00 PM&ndash;5:00 PM</strong>.
       </p>
       <div id="related-container"></div>
       <button type="button" class="btn-add-row" onclick="addRow('related')">
@@ -173,8 +173,18 @@
       </button>
     </section>
 
-    <!-- Preview / Back Buttons -->
+    <!-- Save / Preview / Back Buttons -->
     <div class="form-actions">
+      <button type="button" class="btn btn-secondary btn-lg" id="save-step2-btn"
+              onclick="saveStep2(this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        Save
+      </button>
       <button type="submit" class="btn btn-primary btn-lg btn-generate" id="generate-btn">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -191,7 +201,7 @@
         </svg>
         Back to Schedule
       </a>
-      <p class="form-hint center-hint">Review before downloading — you can go back and edit if needed.</p>
+      <p class="form-hint center-hint">Data is auto-saved as you type. Use Save to confirm before previewing.</p>
     </div>
 
   </form>
