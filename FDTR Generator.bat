@@ -28,7 +28,7 @@ if exist "venv\Scripts\activate.bat" (
 REM ── Open browser after a short delay ──────────────
 start /b "" cmd /c "timeout /t 2 >nul && start http://localhost:5050"
 
-REM ── Start the app (window stays open showing URL) ─
-python app.py
+REM ── Start production server (no dev-server warning) ─
+python serve.py
 
 pause
