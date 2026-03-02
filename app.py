@@ -5,6 +5,7 @@ FDTR Monthly Generator — Flask Application (v2)
 import io
 import json
 import os
+import socket
 import calendar
 from datetime import date, datetime, timedelta
 
@@ -407,4 +408,24 @@ def _default_schedule() -> dict:
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5050))
+
+    # Print the current LAN IP so you always know what URL to share
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        lan_ip = s.getsockname()[0]
+        s.close()
+    except Exception:
+        lan_ip = "127.0.0.1"
+
+    print()
+    print("=" * 48)
+    print("  Faculty Daily Time Record — running")
+    print("=" * 48)
+    print(f"  Local (this machine): http://127.0.0.1:{port}")
+    print(f"  Share with colleagues: http://{lan_ip}:{port}")
+    print("=" * 48)
+    print("  (IP may change after reconnecting to Wi-Fi)")
+    print()
+
     app.run(debug=True, host="0.0.0.0", port=port)
