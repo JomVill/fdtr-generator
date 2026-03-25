@@ -429,7 +429,7 @@ def _write_regular_day(ws, base_row: int, day_num: int,
 
 def _write_footer(ws, faculty_name: str, designation: str,
                   dept_head: str, month: int, year: int):
-    r = SECTION2_DATA + 15 * 3   # row after last possible day (day 31)
+    r = SECTION2_DATA + 16 * 3   # row after last possible day (day 31)
 
     cert1 = ("This certifies upon my honor that the foregoing is a record "
              "for services I rendered to MSU-Iligan Institute")
