@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title id="preview-doc-title">FDTR Preview — MSU-IIT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="setup.html" class="nav-brand">
+    <span class="nav-brand-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <line x1="10" y1="9" x2="8" y2="9"/>
+      </svg>
+    </span>
+    Faculty Daily Time Record
+  </a>
+
+  <div class="nav-links">
+    <a href="setup.html"    class="nav-link" data-page="setup">
+      <span class="nav-step-num">1</span> Setup
+    </a>
+    <a href="generate.html" class="nav-link" data-page="generate">
+      <span class="nav-step-num">2</span> Generate
+    </a>
+  </div>
+
+  <a href="#" class="nav-reset" title="Clear all saved data and start over">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="1 4 1 10 7 10"/>
+      <path d="M3.51 15a9 9 0 1 0 .49-3.21"/>
+    </svg>
+    Reset
+  </a>
+</nav>
+
+<main>
+<div class="preview-page">
+
+  <!-- Action bar (top) -->
+  <div class="preview-actions">
+    <a href="generate.html" class="btn btn-secondary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="19" y1="12" x2="5" y2="12"/>
+        <polyline points="12 19 5 12 12 5"/>
+      </svg>
+      Back to Edit
+    </a>
+
+    <div class="preview-title-block">
+      <h1 class="preview-title">FDTR Preview</h1>
+      <span class="preview-sub" id="preview-title-sub"></span>
+    </div>
+
+    <button type="button" class="btn btn-primary btn-download-fdtr">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Download FDTR
+    </button>
+  </div>
+
+  <!-- Legend -->
+  <div class="preview-legend">
+    <span class="legend-item legend-regular">Regular Day</span>
+    <span class="legend-item legend-related">Related Activities</span>
+    <span class="legend-item legend-weekend">Weekend</span>
+    <span class="legend-item legend-holiday">Holiday</span>
+    <span class="legend-item legend-leave">Leave</span>
+    <span class="legend-item legend-travel">Travel</span>
+  </div>
+
+  <!-- FDTR Table -->
+  <div class="fdtr-scroll">
+    <table class="fdtr-table">
+
+      <thead class="fdtr-institution">
+        <tr><td colspan="14" class="inst-line">Republic of the Philippines</td></tr>
+        <tr><td colspan="14" class="inst-line inst-bold">Mindanao State University</td></tr>
+        <tr><td colspan="14" class="inst-line inst-bold inst-large">ILIGAN INSTITUTE OF TECHNOLOGY</td></tr>
+        <tr><td colspan="14" class="inst-line">Iligan City</td></tr>
+        <tr><td colspan="14" class="inst-blank">&nbsp;</td></tr>
+        <tr><td colspan="14" class="inst-title">FACULTY DAILY TIME RECORD</td></tr>
+        <tr><td colspan="14" class="inst-month" id="preview-month-line"></td></tr>
+        <tr><td colspan="14" class="inst-blank">&nbsp;</td></tr>
+
+        <tr class="fdtr-bordered">
+          <td colspan="8" class="name-dept-cell" id="preview-name-cell"></td>
+          <td colspan="6" class="name-dept-cell" id="preview-dept-cell"></td>
+        </tr>
+
+        <tr class="fdtr-colheader">
+          <th rowspan="2" class="th-day">DAY</th>
+          <th colspan="3">CLASS</th>
+          <th colspan="3">CONSULTATION</th>
+          <th colspan="3" class="th-cat-related">RELATED<br>ACTIVITIES</th>
+          <th colspan="3">OTHERS<br><span class="th-sub">(Adm., R&amp;E)</span></th>
+          <th rowspan="2" class="th-total">Total<br>Hours</th>
+        </tr>
+        <tr class="fdtr-colheader">
+          <th class="th-sub-col">Time In</th><th class="th-sub-col">Time Out</th><th class="th-sub-col">Hrs</th>
+          <th class="th-sub-col">Time In</th><th class="th-sub-col">Time Out</th><th class="th-sub-col">Hrs</th>
+          <th class="th-sub-col">Time In</th><th class="th-sub-col">Time Out</th><th class="th-sub-col">Hrs</th>
+          <th class="th-sub-col">Time In</th><th class="th-sub-col">Time Out</th><th class="th-sub-col">Hrs</th>
+        </tr>
+      </thead>
+
+      <tbody id="preview-tbody"></tbody>
+
+      <tfoot>
+        <tr>
+          <td colspan="14" class="footer-cert" id="preview-cert-text"></td>
+        </tr>
+        <tr>
+          <td colspan="6" class="footer-sig-cell">
+            <div class="footer-name" id="preview-footer-name"></div>
+            <div class="footer-label">(Signature over printed name)</div>
+            <div class="footer-desig" id="preview-footer-desig"></div>
+          </td>
+          <td colspan="2" class="footer-spacer"></td>
+          <td colspan="6" class="footer-sig-cell">
+            <div class="footer-name" id="preview-footer-head"></div>
+            <div class="footer-label">(Head of Dept./Unit)</div>
+          </td>
+        </tr>
+      </tfoot>
+
+    </table>
+  </div>
+
+  <!-- Action bar (bottom) -->
+  <div class="preview-actions preview-actions-bottom">
+    <a href="generate.html" class="btn btn-secondary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="19" y1="12" x2="5" y2="12"/>
+        <polyline points="12 19 5 12 12 5"/>
+      </svg>
+      Back to Edit
+    </a>
+    <button type="button" class="btn btn-primary btn-download-fdtr">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Download FDTR
+    </button>
+  </div>
+
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <p class="loading-text">Generating your FDTR&hellip; please wait</p>
+</div>
+</main>
+
+<footer class="site-footer">
+  <p>
+    <span class="disclaimer-icon" aria-hidden="true">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    </span>
+    <strong>This is an unofficial tool.</strong>
+    Not affiliated with or endorsed by MSU-IIT or the Mindanao State University system.
+    All data is stored <em>only</em> in your browser — nothing is sent to any server.
+    &nbsp;·&nbsp;
+    <a href="https://github.com/JomVill/fdtr-generator/issues" target="_blank" rel="noopener">
+      Report an issue
+    </a>
+  </p>
+</footer>
+
+<!-- ExcelJS + FileSaver via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+
+<script src="js/nav.js"></script>
+<script src="js/app.js"></script>
+<script src="js/special-days.js"></script>
+<script src="js/generator.js"></script>
+<script src="js/preview.js"></script>
+
+</body>
+</html>

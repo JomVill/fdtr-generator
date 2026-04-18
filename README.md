@@ -3,13 +3,35 @@
 **Faculty Daily Time Record generator for MSU-IIT faculty.**
 Fill in your profile once, then generate a correctly-formatted FDTR Excel file for any month in seconds — preview it in the browser before you download.
 
-![Version](https://img.shields.io/badge/version-v3.0-brightgreen)
+![Version](https://img.shields.io/badge/version-v3.1-brightgreen)
 ![License](https://img.shields.io/badge/license-Personal%20Use-blue)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![Flask](https://img.shields.io/badge/flask-3.x-green)
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)
 
 ---
+
+## 🌐 Try it online — no install required
+
+The app is hosted as a static site on GitHub Pages:
+
+### **[→ jomvill.github.io/fdtr-generator](https://jomvill.github.io/fdtr-generator/)**
+
+- Works in any modern browser (Chrome, Edge, Safari, Firefox)
+- **No installation, no account, no server** — the `.xlsx` is generated locally in your browser
+- All data (profile, weekly schedule, presets, month inputs) lives in your browser's `localStorage`; nothing is sent anywhere
+- Works offline once the page has loaded the first time
+- Share the link with colleagues — each person's data stays isolated in their own browser
+
+If you'd rather host it yourself (e.g. to share with a LAN of colleagues in one place), the Flask version below still works.
+
+---
+
+## 🆕 What's New in v3.1
+
+- **Zero-install static site** on GitHub Pages — the entire app now runs in the browser via ExcelJS
+- The Flask stack is still fully supported for LAN / self-hosting use
+- Reset link now clears all saved data (profile, presets, month inputs) explicitly
 
 ## 🆕 What's New in v3.0
 
@@ -293,20 +315,37 @@ If you spot an error, click **← Back to Edit** to return and fix it without lo
 
 ```
 fdtr-generator/
-├── app.py                  # Flask routes (setup, generate, preview, download)
+├── docs/                   # ── Static site (GitHub Pages) ──
+│   ├── index.html          #    Redirect → setup.html
+│   ├── setup.html          #    Step 1
+│   ├── generate.html       #    Step 2
+│   ├── preview.html        #    Step 3
+│   ├── css/style.css
+│   ├── js/
+│   │   ├── app.js          #    localStorage persistence, dynamic rows, presets
+│   │   ├── calendar.js     #    Visual calendar widget
+│   │   ├── special-days.js #    Date-range expander (holidays, leave, travel, suspensions)
+│   │   ├── generator.js    #    ExcelJS port of the Python generator
+│   │   ├── preview.js      #    Client-side preview table renderer
+│   │   └── nav.js          #    Nav active-state
+│   └── screenshots/        #    README screenshots
+│
+├── app.py                  # ── Flask app (self-host / LAN) ──
+├── serve.py                #    Waitress production launcher
+├── FDTR Generator.bat      #    Windows one-click launcher
 ├── fdtr/
 │   ├── __init__.py
-│   └── generator.py        # Excel generation + HTML preview data
+│   └── generator.py        #    openpyxl Excel generator (authoritative reference)
 ├── templates/
 │   ├── base.html
-│   ├── setup.html          # Step 1 — profile & weekly schedule
-│   ├── generate.html       # Step 2 — month, holidays, special days
-│   └── preview.html        # Step 3 — preview table + download
+│   ├── setup.html
+│   ├── generate.html
+│   └── preview.html
 ├── static/
 │   ├── css/style.css
 │   └── js/
-│       ├── app.js          # localStorage persistence, dynamic rows, presets
-│       └── calendar.js     # Visual calendar widget (drag-to-create, overlap layout)
+│       ├── app.js
+│       └── calendar.js
 ├── requirements.txt
 ├── Procfile                # gunicorn start command (Railway / Render / Heroku)
 ├── render.yaml             # One-click Render.com deployment config
@@ -314,9 +353,17 @@ fdtr-generator/
 └── LICENSE
 ```
 
+The `docs/` directory is what gets served on GitHub Pages. The Flask app at the repo root and the static site share the same screenshots, CSS, and calendar widget — but the static site does its Excel generation entirely in the browser using [ExcelJS](https://github.com/exceljs/exceljs).
+
 ---
 
 ## 📋 Changelog
+
+### v3.1 (2026-04-18)
+- **Static GitHub Pages build** under `docs/` — colleagues can use the app at `jomvill.github.io/fdtr-generator` with no Python, pip, or install
+- Browser-side Excel generation via [ExcelJS](https://github.com/exceljs/exceljs) — output matches the Python/openpyxl file byte-for-byte at the formatting level (legal paper, Times New Roman 9pt, thin borders, freeze panes at row 14)
+- Reset link now clears all `fdtr_*` keys from `localStorage` (was server-session clear only)
+- Flask stack unchanged — still the right choice for LAN hosting on one shared machine
 
 ### v3.0 (2026-02-28)
 - **Visual calendar widget** with drag-to-create blocks and overlap layout

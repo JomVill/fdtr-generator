@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Generate Record — MSU-IIT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="setup.html" class="nav-brand">
+    <span class="nav-brand-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <line x1="10" y1="9" x2="8" y2="9"/>
+      </svg>
+    </span>
+    Faculty Daily Time Record
+  </a>
+
+  <div class="nav-links">
+    <a href="setup.html"    class="nav-link" data-page="setup">
+      <span class="nav-step-num">1</span> Setup
+    </a>
+    <a href="generate.html" class="nav-link" data-page="generate">
+      <span class="nav-step-num">2</span> Generate
+    </a>
+  </div>
+
+  <a href="#" class="nav-reset" title="Clear all saved data and start over">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="1 4 1 10 7 10"/>
+      <path d="M3.51 15a9 9 0 1 0 .49-3.21"/>
+    </svg>
+    Reset
+  </a>
+</nav>
+
+<main>
+<div class="page-container">
+  <div class="page-header">
+    <div class="step-badge">Step 2 of 2</div>
+    <h1>Generate Monthly Record</h1>
+    <p class="page-desc">
+      Generating for <strong id="gen-faculty-name">(faculty name)</strong> &mdash; <span id="gen-faculty-dept">(department)</span>.
+      <a href="setup.html" class="link-edit">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+             style="display:inline;vertical-align:middle" aria-hidden="true">
+          <line x1="19" y1="12" x2="5" y2="12"/>
+          <polyline points="12 19 5 12 12 5"/>
+        </svg>
+        Edit profile &amp; schedule
+      </a>
+    </p>
+  </div>
+
+  <form id="generate-form">
+
+    <!-- Month / Year -->
+    <section class="card">
+      <h2 class="card-title">
+        <span class="card-title-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </span>
+        Month &amp; Year
+      </h2>
+      <div class="form-row">
+        <div class="form-group form-group-sm">
+          <label for="month">Month</label>
+          <select id="month" name="month" class="form-input"></select>
+        </div>
+        <div class="form-group form-group-sm">
+          <label for="year">Year</label>
+          <select id="year" name="year" class="form-input"></select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Class Suspension / Related Activities + Holidays -->
+    <section class="card">
+      <h2 class="card-title">
+        <span class="card-title-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+            <line x1="8" y1="16" x2="12" y2="16"/>
+          </svg>
+        </span>
+        Class Suspension / Related Activities
+      </h2>
+      <p class="card-desc">
+        Days when classes are suspended but you still report. Time slots will be recorded under
+        <em>Related Activities</em> (H&ndash;J). Optionally set a custom time-in/out &mdash; otherwise
+        defaults to <strong>8:00 AM&ndash;12:00 PM</strong> and <strong>1:00 PM&ndash;5:00 PM</strong>.
+      </p>
+      <div id="related-container"></div>
+      <button type="button" class="btn-add-row" onclick="addRow('related')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Add Suspension / Related Activity Period
+      </button>
+
+      <hr class="card-inner-sep">
+
+      <h3 class="card-title" style="font-size:.9rem; margin-bottom:.55rem;">
+        <span class="card-title-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </span>
+        Holidays
+      </h3>
+      <p class="card-desc" style="margin-bottom:.65rem;">
+        Public holidays and special non-working days. Weekends are added automatically.
+      </p>
+      <div id="holidays-container"></div>
+      <button type="button" class="btn-add-row" onclick="addRow('holidays')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Add Holiday
+      </button>
+    </section>
+
+    <!-- Leave Days -->
+    <section class="card">
+      <h2 class="card-title">
+        <span class="card-title-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+        </span>
+        Leave Days
+      </h2>
+      <p class="card-desc">Individual days on leave. The label will appear as <em>"ON [TYPE]"</em>.</p>
+      <div id="leave-container"></div>
+      <button type="button" class="btn-add-row" onclick="addRow('leave')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Add Leave Day
+      </button>
+    </section>
+
+    <!-- Official Travel -->
+    <section class="card">
+      <h2 class="card-title">
+        <span class="card-title-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/>
+          </svg>
+        </span>
+        Official Travel
+      </h2>
+      <p class="card-desc">Travel Authority (TA) periods. All days in the range will be marked <em>"ON TRAVEL, TA NO: &hellip;"</em>.</p>
+      <div id="travel-container"></div>
+      <button type="button" class="btn-add-row" onclick="addRow('travel')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Add Travel Period
+      </button>
+    </section>
+
+    <!-- Save / Preview / Back -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary btn-lg" id="save-step2-btn"
+              onclick="saveStep2(this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        Save
+      </button>
+      <button type="submit" class="btn btn-primary btn-lg btn-generate" id="generate-btn">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        Preview Record
+      </button>
+      <a href="setup.html" class="btn btn-secondary btn-lg">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="19" y1="12" x2="5" y2="12"/>
+          <polyline points="12 19 5 12 12 5"/>
+        </svg>
+        Back to Schedule
+      </a>
+      <p class="form-hint center-hint">Data is auto-saved as you type. Use Save to confirm before previewing.</p>
+    </div>
+
+  </form>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <p class="loading-text">Building preview&hellip; please wait</p>
+</div>
+
+<!-- Row templates -->
+<template id="holiday-row-template">
+  <div class="dynamic-row">
+    <input type="date" name="holiday_date[]" class="form-input input-date" required/>
+    <input type="text" name="holiday_label[]" placeholder="Holiday name (e.g. RIZAL DAY)"
+           class="form-input input-label" required/>
+    <button type="button" class="btn-remove-row" onclick="removeRow(this)" title="Remove">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</template>
+
+<template id="leave-row-template">
+  <div class="dynamic-row">
+    <input type="date" name="leave_date[]" class="form-input input-date" required/>
+    <select name="leave_type[]" class="form-input input-select"></select>
+    <button type="button" class="btn-remove-row" onclick="removeRow(this)" title="Remove">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</template>
+
+<template id="travel-row-template">
+  <div class="dynamic-row">
+    <label class="inline-label">From</label>
+    <input type="date" name="travel_start[]" class="form-input input-date" required/>
+    <label class="inline-label">To</label>
+    <input type="date" name="travel_end[]" class="form-input input-date" required/>
+    <label class="inline-label">TA No.</label>
+    <input type="text" name="travel_ta[]" placeholder="e.g. 2026020070"
+           class="form-input input-ta" required/>
+    <button type="button" class="btn-remove-row" onclick="removeRow(this)" title="Remove">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</template>
+
+<template id="related-row-template">
+  <div class="dynamic-row">
+    <label class="inline-label">From</label>
+    <input type="date" name="related_start[]" class="form-input input-date" required/>
+    <label class="inline-label">To</label>
+    <input type="date" name="related_end[]"   class="form-input input-date" required/>
+    <button type="button" class="btn-add-time" onclick="toggleTime(this)">+ Add time</button>
+    <div class="time-slots">
+      <label class="inline-label">Time</label>
+      <input type="time" name="related_time_in[]"  class="form-input input-time" title="Custom time-in"/>
+      <span class="slot-sep">&ndash;</span>
+      <input type="time" name="related_time_out[]" class="form-input input-time" title="Custom time-out"/>
+    </div>
+    <button type="button" class="btn-remove-row" onclick="removeRow(this)" title="Remove">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</template>
+</main>
+
+<footer class="site-footer">
+  <p>
+    <span class="disclaimer-icon" aria-hidden="true">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    </span>
+    <strong>This is an unofficial tool.</strong>
+    Not affiliated with or endorsed by MSU-IIT or the Mindanao State University system.
+    All data is stored <em>only</em> in your browser — nothing is sent to any server.
+    &nbsp;·&nbsp;
+    <a href="https://github.com/JomVill/fdtr-generator/issues" target="_blank" rel="noopener">
+      Report an issue
+    </a>
+  </p>
+</footer>
+
+<!-- ExcelJS + FileSaver via CDN (needed so Preview page can download) -->
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+
+<script src="js/calendar.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/special-days.js"></script>
+<script src="js/generator.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>

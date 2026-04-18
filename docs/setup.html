@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Setup — Faculty Info &amp; Schedule — MSU-IIT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="setup.html" class="nav-brand">
+    <span class="nav-brand-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <line x1="10" y1="9" x2="8" y2="9"/>
+      </svg>
+    </span>
+    Faculty Daily Time Record
+  </a>
+
+  <div class="nav-links">
+    <a href="setup.html"    class="nav-link" data-page="setup">
+      <span class="nav-step-num">1</span> Setup
+    </a>
+    <a href="generate.html" class="nav-link" data-page="generate">
+      <span class="nav-step-num">2</span> Generate
+    </a>
+  </div>
+
+  <a href="#" class="nav-reset" title="Clear all saved data and start over">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="1 4 1 10 7 10"/>
+      <path d="M3.51 15a9 9 0 1 0 .49-3.21"/>
+    </svg>
+    Reset
+  </a>
+</nav>
+
+<main>
+<div class="page-container">
+
+  <div class="page-header">
+    <div class="step-badge">Step 1 of 2</div>
+    <h1>Faculty Info &amp; Weekly Schedule</h1>
+    <p class="page-desc">
+      Fill in your profile once — it will be remembered in this browser.
+      Draw your weekly schedule on the calendar below by <strong>clicking and dragging</strong>.
+    </p>
+  </div>
+
+  <form id="setup-form">
+
+    <input type="hidden" id="schedule-json" name="schedule_json" value="">
+
+    <!-- Faculty Information -->
+    <section class="card">
+      <h2 class="card-title">
+        <span class="card-title-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </span>
+        Faculty Information
+      </h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="faculty_name">Full Name (with suffix / degree)</label>
+          <input type="text" id="faculty_name" name="faculty_name"
+                 placeholder="e.g. JUAN DELA CRUZ, MSc."
+                 required class="form-input"/>
+          <span class="form-hint">Will appear exactly as typed on the FDTR</span>
+        </div>
+        <div class="form-group">
+          <label for="designation">Designation / Position</label>
+          <input type="text" id="designation" name="designation"
+                 placeholder="e.g. Assistant Professor I"
+                 required class="form-input"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="department">Department / Unit</label>
+          <input type="text" id="department" name="department"
+                 placeholder="e.g. COMPUTER APPLICATIONS"
+                 required class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label for="dept_head">Head of Department / Unit (with degree)</label>
+          <input type="text" id="dept_head" name="dept_head"
+                 placeholder="e.g. MARIA SANTOS, PhD."
+                 required class="form-input"/>
+        </div>
+      </div>
+    </section>
+
+    <!-- Weekly Schedule — Calendar view -->
+    <section class="cal-section">
+      <h2 class="card-title">
+        <span class="card-title-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </span>
+        Weekly Schedule
+      </h2>
+
+      <div class="callout">
+        <strong>Where to get your class schedule:</strong>
+        Log in to the MSU-IIT portal at
+        <a href="https://myiit.msuiit.edu.ph/my/v2/index.php" target="_blank" rel="noopener">
+          myiit.msuiit.edu.ph
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+               style="display:inline;vertical-align:middle;margin-left:1px" aria-hidden="true">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        </a>.
+        Then go to <strong>Academics &gt; Class Schedule</strong>.
+        Review your assigned subjects, days, and times, then manually encode them below by placing blocks under the corresponding day columns.
+        Add your consultation hours manually. Include any administrative or research load as additional blocks under the <em>Others</em> category.
+      </div>
+
+      <p class="cal-hint">
+        <strong>Click and drag</strong> on a day column to create a time block.
+        <strong>Click a block</strong> to set its category and label.
+        <strong>Drag the bottom edge</strong> to resize.
+        Your schedule is saved automatically to this browser.
+      </p>
+
+      <div class="preset-bar">
+        <label for="preset-select">Saved schedules:</label>
+        <select id="preset-select" class="preset-select"></select>
+        <button type="button" class="btn-sm" id="btn-load-preset">Load</button>
+        <button type="button" class="btn-sm" id="btn-save-preset">Save as&hellip;</button>
+        <button type="button" class="btn-sm btn-sm-danger" id="btn-del-preset">Delete</button>
+
+        <span class="preset-bar-sep"></span>
+
+        <button type="button" class="btn-sm" id="btn-export-schedule" onclick="exportSchedule()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Export
+        </button>
+        <label class="btn-sm" style="cursor:pointer" title="Import schedule from file">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          Import
+          <input type="file" accept=".json" style="display:none" onchange="importSchedule(this)">
+        </label>
+      </div>
+
+      <div id="cal-container"></div>
+    </section>
+
+    <section class="card card-action">
+      <div class="action-btn-row">
+        <button type="button" class="btn btn-secondary btn-lg" id="save-btn"
+                onclick="saveProfile(); if(window.calendarWidget) calendarWidget.save(); this.textContent='Saved'; setTimeout(() =&gt; this.textContent='Save', 1800)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          Save
+        </button>
+        <button type="submit" class="btn btn-primary btn-lg btn-generate">
+          Continue
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+      </div>
+      <p class="form-hint center-hint">
+        Profile &amp; schedule are saved in your browser — they will be here next time.
+      </p>
+    </section>
+
+  </form>
+</div>
+</main>
+
+<footer class="site-footer">
+  <p>
+    <span class="disclaimer-icon" aria-hidden="true">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    </span>
+    <strong>This is an unofficial tool.</strong>
+    Not affiliated with or endorsed by MSU-IIT or the Mindanao State University system.
+    All data is stored <em>only</em> in your browser — nothing is sent to any server.
+    &nbsp;·&nbsp;
+    <a href="https://github.com/JomVill/fdtr-generator/issues" target="_blank" rel="noopener">
+      Report an issue
+    </a>
+  </p>
+</footer>
+
+<script src="js/calendar.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
