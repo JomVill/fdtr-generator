@@ -322,7 +322,7 @@
 
     CAT_ORDER.forEach(function (cat) {
       var cols = CATEGORY_COLS[cat];
-      var entries = cat_data[cat].slice(0, 2);
+      var entries = cat_data[cat].slice(0, 3);
       entries.forEach(function (e, sub_i) {
         var r = r0 + sub_i;
         if (e.t_in) {

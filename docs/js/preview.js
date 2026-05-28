@@ -54,12 +54,15 @@
 
         html +=
           '<tr class="day-row day-' + escHtml(row.day_class) + '">' +
-            '<td class="td-day" rowspan="2">' + escHtml(row.day) + '</td>' +
+            '<td class="td-day" rowspan="3">' + escHtml(row.day) + '</td>' +
             subrow(0) +
-            '<td class="td-total" rowspan="2">' + escHtml(totalStr) + '</td>' +
+            '<td class="td-total" rowspan="3">' + escHtml(totalStr) + '</td>' +
           '</tr>' +
           '<tr class="day-row day-' + escHtml(row.day_class) + ' day-subrow">' +
             subrow(1) +
+          '</tr>' +
+          '<tr class="day-row day-' + escHtml(row.day_class) + ' day-subrow">' +
+            subrow(2) +
           '</tr>';
       }
     }
