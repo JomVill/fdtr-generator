@@ -102,30 +102,22 @@
                 '<strong>Change my details or schedule</strong>.'
         },
         {
-          target: '#generate-form > .card:nth-of-type(1)',
+          target: '#month-card',
           title: 'Choose the month',
-          body: 'Pick the month and year. Your weekly schedule is filled into every working day for you.'
+          body: 'Pick the month and year. The summary below shows what will go into your FDTR.'
         },
         {
-          target: '#generate-form > .card:nth-of-type(2)',
-          title: 'Suspended classes and holidays',
-          body: 'Add days when classes were suspended but you still reported for work, and any holidays. ' +
-                'Weekends are already handled.'
+          target: '#entries-card',
+          title: 'Anything different this month?',
+          body: 'Your weekly schedule is filled in for you. Use the tabs to add only the days that were ' +
+                'different: <strong>holidays, leave, travel</strong> or <strong>suspended classes</strong>. ' +
+                'The number on each tab shows how many you’ve added.'
         },
         {
-          target: '#generate-form > .card:nth-of-type(3)',
-          title: 'Days on leave',
-          body: 'Add each day you were on leave and choose the type. It shows as “ON [TYPE]” on that day.'
-        },
-        {
-          target: '#generate-form > .card:nth-of-type(4)',
-          title: 'Official travel',
-          body: 'Add the dates of each Travel Authority and its TA number. Those days show “ON TRAVEL”.'
-        },
-        {
-          target: '#generate-btn',
+          target: '#actions-card',
           title: 'Preview, then download',
-          body: 'Click <strong>Preview my FDTR</strong> to check it, then download it as an Excel file.'
+          body: 'Click <strong>Preview my FDTR</strong> to check it, then download it as an Excel file. ' +
+                'Everything here saves automatically.'
         },
         {
           target: '#history-card',

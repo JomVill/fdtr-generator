@@ -204,8 +204,9 @@
               'stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
             '</button>' +
           '</div>' +
-          '<p class="data-modal-lead">Your information is saved only in this browser. To use it on another ' +
-            'computer or browser, make a backup file here and open it there.</p>' +
+          '<p class="data-modal-lead">Your information is saved only in this browser. It is deleted if you ' +
+            'clear your browsing data or cookies, and other computers can\u2019t see it. A backup file keeps it safe ' +
+            'and lets you open it anywhere.</p>' +
 
           '<section class="data-step">' +
             '<span class="data-step-num">1</span>' +
@@ -353,8 +354,9 @@
     var h = getHistory();
 
     if (!h.length) {
-      list.innerHTML = '<p class="history-empty">Nothing here yet. Each time you download an FDTR, ' +
-        'it’s kept here so you can download it again later.</p>';
+      list.innerHTML = '<p class="history-empty">Nothing here yet. Each FDTR you download is kept here ' +
+        'so you can download it again later.</p>';
+      renderBackupNote();
       return;
     }
 
@@ -365,13 +367,43 @@
           '<span class="history-meta">Downloaded ' + esc(niceDate(r.savedAt)) + '</span>' +
         '</div>' +
         '<div class="history-actions">' +
-          '<button type="button" class="btn-sm" data-h="download">Download again</button>' +
+          '<button type="button" class="btn-sm" data-h="download">Download</button>' +
           '<button type="button" class="btn-sm" data-h="edit">Edit</button>' +
           '<button type="button" class="btn-sm btn-sm-danger" data-h="remove" aria-label="Remove ' +
             MONTHS[r.month - 1] + ' ' + r.year + ' from this list">Remove</button>' +
         '</div>' +
       '</div>';
     }).join('');
+    renderBackupNote();
+  }
+
+  // Gentle reminder under the Preview button when past records aren't backed up yet
+  function renderBackupNote() {
+    var note = document.getElementById('gen-backup-note');
+    if (!note) return;
+    var h = getHistory();
+    var last = get(LS_LAST_BACKUP);
+    var newest = h.reduce(function (t, r) { return r.savedAt > t ? r.savedAt : t; }, '');
+    var stale = h.length && (!last || newest > last);
+    note.hidden = !stale;
+    if (!stale) return;
+    note.innerHTML = (last ? 'You have new records since your last backup (' + esc(niceDate(last)) + ').'
+                           : 'You haven\u2019t made a backup yet.') +
+      ' <button type="button" class="link-btn">Download backup</button>';
+    note.querySelector('.link-btn').addEventListener('click', function () {
+      downloadBackup();
+      renderBackupNote();
+      toast('Backup file downloaded. Check your Downloads folder.');
+    });
+  }
+
+  // Ask the browser not to clear this site's data on its own (e.g. when the disk is low).
+  // Firefox shows a permission prompt for this, which would confuse people, so skip it there.
+  function requestPersistence() {
+    if (!navigator.storage || !navigator.storage.persist || /firefox/i.test(navigator.userAgent)) return;
+    if (!get('fdtr_profile') && !get('fdtr_schedule')) return;
+    navigator.storage.persisted().then(function (yes) { if (!yes) navigator.storage.persist(); })
+      .catch(function () {});
   }
 
   function initHistory() {
@@ -419,6 +451,7 @@
   document.addEventListener('DOMContentLoaded', function () {
     addNavButton();
     initHistory();
+    requestPersistence();
     var note = null;
     try { note = sessionStorage.getItem(SS_RESTORED); sessionStorage.removeItem(SS_RESTORED); } catch (e) {}
     if (note) toast(note);

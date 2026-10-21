@@ -35,6 +35,7 @@ If you'd rather host it yourself (e.g. to share with a LAN of colleagues in one 
 - **Undo** after deleting, loading a saved schedule, or removing a repeated block
 - **Backup & restore** — one file with everything (details, schedule, saved schedules, monthly entries, past records) to move to a new computer or browser
 - **Past records** — every FDTR you download is kept on the Generate page to download again or edit
+- **Shorter Generate page** — month and summary on top, tabs for holidays / leave / travel / suspended classes, Preview beside them
 - Plain-language wording throughout, keyboard access for calendar blocks, sticky day headers
 
 ## 🆕 What's New in v3.1
@@ -377,6 +378,8 @@ The `docs/` directory is what gets served on GitHub Pages. The Flask app at the 
 - Block editor redesign: category buttons, *Same time on other days*, Copy (Ctrl/⌘+D), Alt-drag to duplicate, delete from one or all repeated days, Undo
 - Backup & restore (single `fdtr-backup-*.json` file, also reads old schedule exports) and Past records on the Generate page
 - Plain-language copy for non-technical users; cache-busting `?v=` on static assets
+- Generate page redesign: month bar with a live summary, one tabbed card for holidays / leave / travel / suspended classes, Preview and Past records side by side — fits on one laptop screen
+- Backup reminder, browser asked to keep site data (`navigator.storage.persist`, skipped on Firefox); fixed *Set times* needing two clicks
 
 ### v3.1 (2026-04-18)
 - **Static GitHub Pages build** under `docs/` — colleagues can use the app at `jomvill.github.io/fdtr-generator` with no Python, pip, or install

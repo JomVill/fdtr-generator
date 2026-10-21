@@ -50,12 +50,24 @@ function addRow(type) {
   if (!tmpl || !container) return;
 
   var clone = tmpl.content.cloneNode(true);
-  var today = new Date().toISOString().slice(0, 10);
+  // New dates start inside the chosen month: today if it's in that month, else the 1st
+  var m = parseInt((document.getElementById('month') || {}).value, 10);
+  var y = parseInt((document.getElementById('year')  || {}).value, 10);
+  var now = new Date();
+  var day = (now.getFullYear() === y && now.getMonth() + 1 === m) ? now.getDate() : 1;
+  var start = (m && y) ? y + '-' + ('0' + m).slice(-2) + '-' + ('0' + day).slice(-2)
+                       : now.toISOString().slice(0, 10);
   clone.querySelectorAll("input[type='date']").forEach(function (el) {
-    el.value = today;
+    el.value = start;
   });
   container.appendChild(clone);
-  if (!_restoringForm) serializeGenerateForm();
+  if (!_restoringForm) {
+    serializeGenerateForm();
+    // Put the cursor in the new row so people can type right away
+    var row = container.lastElementChild;
+    var first = row && row.querySelector('input[type="text"], select, input');
+    if (first) first.focus();
+  }
 }
 
 function removeRow(btn) {
@@ -69,7 +81,8 @@ function toggleTime(btn) {
   var row   = btn.closest('.dynamic-row');
   var slots = row.querySelector('.time-slots');
   if (!slots) return;
-  var isVisible = slots.style.display !== 'none';
+  // Read what's actually shown — the inline style is empty until the first toggle
+  var isVisible = getComputedStyle(slots).display !== 'none';
   slots.style.display = isVisible ? 'none' : 'flex';
   btn.textContent = isVisible ? '+ Set times' : '\u2212 Use default times';
   serializeGenerateForm();
@@ -208,7 +221,7 @@ function serializeGenerateForm() {
         obj[name] = el ? el.value : '';
       });
       var ts = row.querySelector('.time-slots');
-      if (ts) obj['_timeVisible'] = ts.style.display !== 'none';
+      if (ts) obj['_timeVisible'] = getComputedStyle(ts).display !== 'none';
       rows.push(obj);
     });
     return rows;
@@ -370,16 +383,6 @@ function saveSetup(btn) {
   setTimeout(function () { btn.innerHTML = origHTML; btn.disabled = false; }, 1800);
 }
 
-/* ── Generate page: explicit Save button ────────────────────────── */
-function saveStep2(btn) {
-  serializeGenerateForm();
-  if (!btn) return;
-  var origHTML = btn.innerHTML;
-  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Saved';
-  btn.disabled = true;
-  setTimeout(function () { btn.innerHTML = origHTML; btn.disabled = false; }, 1800);
-}
-
 /* ── Build payload for preview / download (from form + localStorage) ── */
 function buildPayload() {
   var profile = lsGetJSON(LS_PROFILE) || {};
@@ -425,6 +428,110 @@ function buildPayload() {
 }
 
 /* ── Generate page init ─────────────────────────────────────────── */
+/* ── Generate page: tabs, counts, month summary, saved status ───── */
+var GEN_TYPES = ['holidays', 'leave', 'travel', 'related'];
+var GEN_MONTHS = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+
+function genRowCount(type) {
+  var c = document.getElementById(type + '-container');
+  return c ? c.querySelectorAll('.dynamic-row').length : 0;
+}
+
+function selectGenTab(type, focus) {
+  GEN_TYPES.forEach(function (t) {
+    var tab = document.getElementById('tab-' + t);
+    var panel = document.getElementById('panel-' + t);
+    if (!tab || !panel) return;
+    var on = t === type;
+    tab.setAttribute('aria-selected', on ? 'true' : 'false');
+    tab.tabIndex = on ? 0 : -1;
+    panel.hidden = !on;
+    if (on && focus) tab.focus();
+  });
+}
+
+function updateGenSummary() {
+  var m = parseInt((document.getElementById('month') || {}).value, 10);
+  var y = parseInt((document.getElementById('year')  || {}).value, 10);
+  var list = document.getElementById('gen-summary');
+
+  GEN_TYPES.forEach(function (t) {
+    var badge = document.querySelector('[data-count="' + t + '"]');
+    if (!badge) return;
+    var n = genRowCount(t);
+    badge.textContent = n;
+    badge.classList.toggle('is-zero', n === 0);
+  });
+  if (!list || !m || !y) return;
+
+  var weekdays = 0, days = new Date(y, m, 0).getDate();
+  for (var d = 1; d <= days; d++) {
+    var wd = new Date(y, m - 1, d).getDay();
+    if (wd !== 0 && wd !== 6) weekdays++;
+  }
+  var items = ['<li class="gen-summary-main">' + GEN_MONTHS[m - 1] + ' ' + y + ' has <strong>' +
+               weekdays + ' weekdays</strong>.</li>'];
+  var parts = [
+    ['holidays', 'holiday', 'holidays'],
+    ['leave',    'leave day', 'leave days'],
+    ['travel',   'travel period', 'travel periods'],
+    ['related',  'suspended-class period', 'suspended-class periods']
+  ];
+  var any = false;
+  parts.forEach(function (p) {
+    var n = genRowCount(p[0]);
+    if (n) { any = true; items.push('<li>' + n + ' ' + (n === 1 ? p[1] : p[2]) + '</li>'); }
+  });
+  if (!any) items.push('<li class="gen-summary-none">No changes added &mdash; your normal schedule will be used.</li>');
+  list.innerHTML = items.join('');
+}
+
+function initGenerateLayout() {
+  var tablist = document.querySelector('.gen-tabs');
+  if (tablist) {
+    tablist.addEventListener('click', function (e) {
+      var tab = e.target.closest('.gen-tab');
+      if (tab) selectGenTab(tab.getAttribute('data-type'));
+    });
+    // Arrow keys move between tabs (standard tab behaviour)
+    tablist.addEventListener('keydown', function (e) {
+      var i = GEN_TYPES.indexOf(document.activeElement.getAttribute('data-type'));
+      if (i < 0) return;
+      var next = null;
+      if (e.key === 'ArrowRight') next = GEN_TYPES[(i + 1) % GEN_TYPES.length];
+      else if (e.key === 'ArrowLeft') next = GEN_TYPES[(i + GEN_TYPES.length - 1) % GEN_TYPES.length];
+      else if (e.key === 'Home') next = GEN_TYPES[0];
+      else if (e.key === 'End') next = GEN_TYPES[GEN_TYPES.length - 1];
+      if (next) { e.preventDefault(); selectGenTab(next, true); }
+    });
+  }
+
+  // Counts + summary follow rows being added/removed (including month switches)
+  var obs = new MutationObserver(updateGenSummary);
+  GEN_TYPES.forEach(function (t) {
+    var c = document.getElementById(t + '-container');
+    if (c) obs.observe(c, { childList: true });
+  });
+
+  // Open the first tab that already has entries
+  var firstFilled = GEN_TYPES.filter(function (t) { return genRowCount(t) > 0; })[0];
+  selectGenTab(firstFilled || 'holidays');
+  updateGenSummary();
+
+  // "Saved automatically" blinks after each change so people can see it worked
+  var saved = document.getElementById('gen-saved');
+  var form = document.getElementById('generate-form');
+  var t = null;
+  if (saved && form) {
+    form.addEventListener('input', function () {
+      saved.classList.add('is-flash');
+      clearTimeout(t);
+      t = setTimeout(function () { saved.classList.remove('is-flash'); }, 1200);
+    });
+  }
+}
+
 function initGeneratePage() {
   // Require profile; else bounce to setup
   var p = lsGetJSON(LS_PROFILE);
@@ -450,6 +557,9 @@ function initGeneratePage() {
   }
   if (m) m.addEventListener('change', onMonthYearChange);
   if (y) y.addEventListener('change', onMonthYearChange);
+  initGenerateLayout();
+  if (m) m.addEventListener('change', updateGenSummary);
+  if (y) y.addEventListener('change', updateGenSummary);
 
   var form = document.getElementById('generate-form');
   if (form) {

@@ -1470,6 +1470,180 @@ label.data-btn { cursor: pointer; }
 
 
 /* ==========================================================================
+   GENERATE PAGE — two columns on wide screens, tabs for the kinds of days
+   ========================================================================== */
+
+/* Phones / narrow: one column in reading order (month → entries → preview → records) */
+.gen-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+.gen-layout > .card { margin-bottom: 0; }
+
+/* Wide: month bar across the top; entries left; preview and records right */
+@media (min-width: 900px) {
+  .gen-layout {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    grid-template-areas:
+      "month   month"
+      "entries actions"
+      "entries history"
+      "entries .";
+    grid-template-rows: auto auto auto 1fr;
+    gap: 1rem 1.25rem;
+  }
+  /* Month bar: title, selects and summary on one line */
+  .gen-month {
+    display: grid;
+    grid-template-columns: auto 300px minmax(0, 1fr);
+    align-items: center;
+    gap: 1.25rem;
+  }
+  .gen-month .card-title { margin-bottom: 0; }
+  .gen-month .gen-summary { margin-top: 0; }
+  .gen-entries { grid-area: entries; }
+  .gen-month   { grid-area: month; }
+  .gen-actions { grid-area: actions; }
+  .gen-history { grid-area: history; }
+}
+
+.gen-layout .card { padding: 1.15rem 1.25rem; }
+.gen-layout .card-title { margin-bottom: .6rem; }
+
+/* Month */
+.gen-month-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: .6rem; }
+.gen-month-row label { font-size: .75rem; }
+.gen-month-row .form-group { min-width: 0; }
+.gen-summary {
+  list-style: none;
+  margin: .85rem 0 0;
+  padding: .7rem .85rem;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--r);
+  font-size: .82rem;
+  line-height: 1.6;
+  color: var(--gray-700);
+}
+.gen-summary { display: flex; flex-wrap: wrap; column-gap: 1rem; row-gap: .1rem; }
+.gen-summary li { position: relative; padding-left: .9rem; }
+.gen-summary li::before {
+  content: '';
+  position: absolute;
+  left: 0; top: .62em;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.gen-summary .gen-summary-main { padding-left: 0; color: var(--gray-900); }
+.gen-summary .gen-summary-main::before { display: none; }
+.gen-summary .gen-summary-none { color: var(--gray-500); }
+
+/* Entries: tabs */
+.gen-entries .card-desc { margin-bottom: .85rem; }
+.gen-tabs {
+  display: flex;
+  gap: .25rem;
+  padding: .25rem;
+  margin-bottom: .9rem;
+  background: var(--gray-100);
+  border-radius: var(--r);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.gen-tabs::-webkit-scrollbar { display: none; }
+.gen-tab {
+  flex: 1 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  min-height: 38px;
+  padding: 0 .85rem;
+  font-family: var(--font);
+  font-size: .84rem;
+  font-weight: 600;
+  color: var(--gray-600);
+  background: none;
+  border: none;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s, color .15s, box-shadow .15s;
+}
+.gen-tab:hover { color: var(--gray-900); background: rgba(255,255,255,.6); }
+.gen-tab[aria-selected="true"] {
+  color: var(--brand);
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(0,0,0,.1);
+}
+.gen-tab:focus-visible { outline: 2px solid var(--brand-mid); outline-offset: 1px; }
+.gen-count {
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 .35rem;
+  display: inline-grid;
+  place-items: center;
+  font-size: .72rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--brand);
+  border-radius: 99px;
+}
+.gen-count.is-zero { color: var(--gray-500); background: var(--gray-200); }
+.gen-panel[hidden] { display: none; }
+.gen-panel-desc { font-size: .82rem; line-height: 1.5; color: var(--gray-500); margin-bottom: .75rem; }
+
+/* Preview + saved status */
+.gen-actions { display: flex; flex-direction: column; align-items: stretch; gap: .6rem; }
+.gen-actions .btn-generate { width: 100%; min-width: 0; }
+.gen-saved {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  font-size: .78rem;
+  color: var(--gray-500);
+  transition: color .2s;
+}
+.gen-saved svg { color: #16a34a; }
+.gen-saved.is-flash { color: #15803d; font-weight: 600; }
+.gen-backup-note {
+  font-size: .78rem;
+  line-height: 1.5;
+  color: var(--gray-700);
+  background: var(--accent-light);
+  border: 1px solid rgba(184,134,11,.25);
+  border-radius: var(--r-sm);
+  padding: .55rem .7rem;
+}
+.gen-backup-note[hidden] { display: none; }
+.link-btn {
+  font: inherit;
+  font-weight: 700;
+  color: var(--brand);
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.link-btn:hover { color: var(--brand-hover); }
+
+/* Past records in the narrow right column */
+.gen-history .history-row { padding: .55rem .65rem; gap: .4rem; }
+.gen-history .history-month { font-size: .86rem; }
+.gen-history .history-actions .btn-sm { min-height: 32px; padding: .25rem .55rem; font-size: .74rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .gen-tab, .gen-saved { transition: none; }
+}
+
+
+/* ==========================================================================
    ONBOARDING TOUR (setup page)
    ========================================================================== */
 
