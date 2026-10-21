@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20261021k"/>
+  <link rel="stylesheet" href="css/style.css?v=20261021n"/>
 </head>
 <body>
 
@@ -70,7 +70,9 @@
 
   <form id="generate-form" class="gen-layout">
 
-    <!-- Right column (top): month + summary -->
+    <!-- Left column: steps 1 and 2 -->
+    <div class="gen-col gen-col-main">
+
     <section class="card gen-month" id="month-card">
       <h2 class="card-title">
         <span class="card-title-icon">
@@ -96,7 +98,7 @@
       </div>
     </section>
 
-    <!-- Left column: what's different this month (tabs) -->
+    <!-- What's different this month (tabs) -->
     <section class="card gen-entries" id="entries-card">
       <h2 class="card-title">
         <span class="card-title-icon">
@@ -162,7 +164,11 @@
         </div>
     </section>
 
-    <!-- Right column (middle): preview -->
+    </div>
+
+    <!-- Right column: step 3 and past records -->
+    <div class="gen-col gen-col-side">
+
     <section class="card gen-actions" id="actions-card">
       <h2 class="card-title gen-actions-title">3. Check and download</h2>
       <div class="gen-summary" id="gen-summary" aria-live="polite"></div>
@@ -182,7 +188,6 @@
       <p class="gen-backup-note" id="gen-backup-note" hidden></p>
     </section>
 
-    <!-- Right column (bottom): past records -->
     <section class="card gen-history" id="history-card">
       <details class="history-details">
         <summary class="history-summary">
@@ -204,6 +209,8 @@
         <div class="history-list"></div>
       </details>
     </section>
+
+    </div>
 
   </form>
 </div>
@@ -337,13 +344,13 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 
-<script src="js/calendar.js?v=20261021k"></script>
-<script src="js/nav.js?v=20261021k"></script>
-<script src="js/special-days.js?v=20261021k"></script>
-<script src="js/generator.js?v=20261021k"></script>
-<script src="js/app.js?v=20261021k"></script>
-<script src="js/data.js?v=20261021k"></script>
-<script src="js/tour.js?v=20261021k"></script>
+<script src="js/calendar.js?v=20261021n"></script>
+<script src="js/nav.js?v=20261021n"></script>
+<script src="js/special-days.js?v=20261021n"></script>
+<script src="js/generator.js?v=20261021n"></script>
+<script src="js/app.js?v=20261021n"></script>
+<script src="js/data.js?v=20261021n"></script>
+<script src="js/tour.js?v=20261021n"></script>
 
 </body>
 </html>
