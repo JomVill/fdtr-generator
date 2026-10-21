@@ -128,6 +128,7 @@
           '</tr>';
       } else {
         // Regular / related_activities: 3 sub-rows
+        var totalStr = (row.total === "" || row.total == null) ? "" : String(row.total);
         var subrow = function (subIdx) {
           var out = "";
           for (var c = 0; c < CATS.length; c++) {
@@ -145,14 +146,23 @@
         };
         var totalStr = (row.total === "" || row.total == null) ? "" : String(row.total);
 
+        // No rowspan: the PDF renderer drops text in spanning cells. Each day is three
+        // ordinary rows; the day number and total sit in the middle row, and the
+        // borders between the three lines are hidden in those two columns.
+        var cls = 'day-row day-' + escHtml(row.day_class);
         html +=
-          '<tr class="day-row day-' + escHtml(row.day_class) + '">' +
-            '<td class="td-day" rowspan="3">' + escHtml(row.day) + '</td>' +
-            subrow(0) +
-            '<td class="td-total" rowspan="3">' + escHtml(totalStr) + '</td>' +
+          '<tr class="' + cls + ' day-line-1">' +
+            '<td class="td-day td-span-top"></td>' + subrow(0) +
+            '<td class="td-total td-span-top"></td>' +
           '</tr>' +
-          '<tr class="day-row day-' + escHtml(row.day_class) + ' day-subrow">' + subrow(1) + '</tr>' +
-          '<tr class="day-row day-' + escHtml(row.day_class) + ' day-subrow">' + subrow(2) + '</tr>';
+          '<tr class="' + cls + ' day-line-2 day-subrow">' +
+            '<td class="td-day td-span-mid">' + escHtml(row.day) + '</td>' + subrow(1) +
+            '<td class="td-total td-span-mid">' + escHtml(totalStr) + '</td>' +
+          '</tr>' +
+          '<tr class="' + cls + ' day-line-3 day-subrow">' +
+            '<td class="td-day td-span-bot"></td>' + subrow(2) +
+            '<td class="td-total td-span-bot"></td>' +
+          '</tr>';
       }
     }
     return html;
