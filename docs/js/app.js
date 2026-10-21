@@ -576,13 +576,17 @@ function updateGenSummary() {
   var y = parseInt((document.getElementById('year')  || {}).value, 10);
   var box = document.getElementById('gen-summary');
 
+  var totalRows = 0;
   GEN_TYPES.forEach(function (t) {
     var badge = document.querySelector('[data-count="' + t + '"]');
-    if (!badge) return;
     var n = genRowCount(t);
+    totalRows += n;
+    if (!badge) return;
     badge.textContent = n;
     badge.classList.toggle('is-zero', n === 0);
   });
+  var clearBtn = document.getElementById('btn-clear-month');
+  if (clearBtn) clearBtn.disabled = totalRows === 0;
   if (!box || !m || !y) return;
 
   // Later kinds win when two land on the same day (same order the FDTR builder applies them)
@@ -625,7 +629,29 @@ function updateGenSummary() {
       '<p class="gen-sum-none">Nothing different added &mdash; every weekday uses your normal schedule.</p>');
 }
 
+// "Clear all": empty every tab for the chosen month, with Undo
+function clearMonthEntries() {
+  serializeGenerateForm();
+  var key = _activeMonthKey || getMonthKey();
+  var before = lsGet(key);
+  GEN_TYPES.forEach(function (t) {
+    var c = document.getElementById(t + '-container');
+    if (c) c.innerHTML = '';
+  });
+  serializeGenerateForm();
+  var m = document.getElementById('month'), y = document.getElementById('year');
+  var label = m ? m.options[m.selectedIndex].text + (y ? ' ' + y.value : '') : 'this month';
+  var undo = function () {
+    if (before != null) lsSet(key, before);
+    restoreGenerateForm();
+  };
+  if (window.fdtrData && fdtrData.toast) fdtrData.toast('Cleared everything for ' + label + '.', undo);
+}
+
 function initGenerateLayout() {
+  var clearBtn = document.getElementById('btn-clear-month');
+  if (clearBtn) clearBtn.addEventListener('click', clearMonthEntries);
+
   var tablist = document.querySelector('.gen-tabs');
   if (tablist) {
     tablist.addEventListener('click', function (e) {

@@ -1561,6 +1561,30 @@ label.data-btn { cursor: pointer; }
 .gen-sum-related  { background: #fb923c; }
 .gen-sum-none { margin-top: .3rem; font-size: .76rem; line-height: 1.45; color: var(--gray-500); }
 
+/* Step 2 header: title left, quiet "Clear all" right */
+.gen-entries .card-title { display: flex; align-items: center; gap: .5rem; }
+.gen-entries .card-title-text { flex: 1; min-width: 0; }
+.btn-clear-all {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  min-height: 32px;
+  padding: 0 .55rem;
+  font-family: var(--font);
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--gray-500);
+  background: none;
+  border: none;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s, color .15s;
+}
+.btn-clear-all:hover:not(:disabled) { color: var(--gray-800); background: var(--gray-100); }
+.btn-clear-all:disabled { color: var(--gray-300); cursor: default; }
+.btn-clear-all:focus-visible { outline: 2px solid var(--brand-mid); outline-offset: 2px; }
+
 /* Entries: tabs */
 .gen-entries .card-desc { margin-bottom: .85rem; }
 .gen-tabs {

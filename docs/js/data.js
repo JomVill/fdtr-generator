@@ -52,16 +52,21 @@
   }
 
   // ── Toast (same look as the calendar's) ────────────────────────────────
-  function toast(msg) {
+  // onUndo (optional): adds an Undo button that calls it
+  function toast(msg, onUndo) {
     var old = document.querySelector('.cal-toast');
     if (old) old.remove();
     var t = el('<div class="cal-toast" role="status"><span class="cal-toast-msg"></span>' +
+               (onUndo ? '<button type="button" class="cal-toast-undo">Undo</button>' : '') +
                '<button type="button" class="cal-toast-close" aria-label="Dismiss">' +
                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
                'stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/>' +
                '<line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>');
     t.querySelector('.cal-toast-msg').textContent = msg;
     t.querySelector('.cal-toast-close').addEventListener('click', function () { t.remove(); });
+    if (onUndo) {
+      t.querySelector('.cal-toast-undo').addEventListener('click', function () { t.remove(); onUndo(); });
+    }
     document.body.appendChild(t);
     setTimeout(function () { t.remove(); }, 7000);
   }
@@ -466,6 +471,7 @@
     recordHistory: recordHistory,
     getHistory: getHistory,
     openBackup: openDialog,
+    toast: toast,
     downloadBackup: downloadBackup
   };
 })();
