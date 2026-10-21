@@ -230,12 +230,79 @@
     }
   }
 
+  // ── PDF: the preview sheet as one Folio page ───────────────────────────
+  // Loaded only when someone asks for a PDF (pinned versions from cdnjs)
+  var PDF_LIBS = [
+    'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+  ];
+  var pdfLibsReady = null;
+  function loadPdfLibs() {
+    if (pdfLibsReady) return pdfLibsReady;
+    pdfLibsReady = PDF_LIBS.reduce(function (chain, src) {
+      return chain.then(function () {
+        return new Promise(function (resolve, reject) {
+          var sc = document.createElement('script');
+          sc.src = src;
+          sc.onload = resolve;
+          sc.onerror = function () { reject(new Error('Could not load ' + src)); };
+          document.head.appendChild(sc);
+        });
+      });
+    }, Promise.resolve());
+    pdfLibsReady.catch(function () { pdfLibsReady = null; });   // allow a retry
+    return pdfLibsReady;
+  }
+
+  function downloadPdf(payload, btn, onDone) {
+    var label = btn ? btn.innerHTML : "";
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="pv-spin" aria-hidden="true"></span> Preparing\u2026'; }
+    function restore() { if (btn) { btn.disabled = false; btn.innerHTML = label; } }
+
+    var preview = window.generatePreviewData(payload, window.buildSpecialDays(payload));
+    // A fresh, unscaled sheet off-screen, in black and white like the printout
+    var host = document.createElement('div');
+    host.className = 'pv-pdf-host';
+    document.body.appendChild(host);
+
+    loadPdfLibs().then(function () {
+      var sheet = mountSheet(host, preview);
+      return window.html2canvas(sheet.paper, {
+        scale: 3.125,                     // 816 px × 3.125 ≈ 300 dpi on 8.5 in
+        backgroundColor: '#ffffff',
+        logging: false,
+        useCORS: true
+      });
+    }).then(function (canvas) {
+      var JsPDF = window.jspdf.jsPDF;
+      var pdf = new JsPDF({ orientation: 'portrait', unit: 'in', format: [8.5, 13], compress: true });
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 8.5, 13, undefined, 'FAST');
+      pdf.setProperties({
+        title: 'FDTR ' + preview.month_name + ' ' + preview.year + ' \u2014 ' + preview.faculty_name,
+        creator: 'FDTR Generator'
+      });
+      pdf.save('FDTR_' + preview.year + '_' + preview.month_name + '_' +
+               String(preview.faculty_name).replace(/\s+/g, '_').replace(/,/g, '') + '.pdf');
+      host.remove();
+      restore();
+      if (window.fdtrData) window.fdtrData.recordHistory(payload);
+      if (onDone) onDone();
+    }).catch(function (err) {
+      console.error(err);
+      host.remove();
+      restore();
+      alert("Sorry, the PDF couldn\u2019t be made. Check your internet connection and try again, " +
+            "or use Print and choose \u201CSave as PDF\u201D.\n\nDetails: " + (err && err.message ? err.message : err));
+    });
+  }
+
   // ── Icons ──────────────────────────────────────────────────────────────
   var I = {
     close: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
     minus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/></svg>',
     plus:  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
     fit:   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>',
+    pdf:   '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><polyline points="9 15 12 18 15 15"/></svg>',
     dl:    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
     print: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>',
     edit:  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>',
@@ -334,7 +401,10 @@
             '<div class="pv-side-scroll">' + panelHtml(preview, stats) + '</div>' +
             '<div class="pv-actions">' +
               '<p class="pv-done" hidden>' + I.ok + '<span>Downloaded. It’s also in <strong>Past records</strong>.</span></p>' +
-              '<button type="button" class="btn btn-primary pv-download">' + I.dl + ' Download Excel file</button>' +
+              '<div class="pv-dl-row">' +
+                '<button type="button" class="btn btn-primary pv-download">' + I.dl + ' Excel</button>' +
+                '<button type="button" class="btn btn-primary pv-download-pdf">' + I.pdf + ' PDF</button>' +
+              '</div>' +
               '<div class="pv-actions-row">' +
                 '<button type="button" class="btn btn-secondary pv-print">' + I.print + ' Print</button>' +
                 '<button type="button" class="btn btn-secondary pv-edit">' + I.edit + ' Make changes</button>' +
@@ -357,12 +427,15 @@
     modal.querySelector('.pv-print').addEventListener('click', function () { window.print(); });
     window.addEventListener('beforeprint', onBeforePrint);
     window.addEventListener('afterprint', onAfterPrint);
+    function downloaded() {
+      modal.querySelector('.pv-done').hidden = false;
+      if (opts.onDownloaded) opts.onDownloaded();
+    }
     modal.querySelector('.pv-download').addEventListener('click', function () {
-      var btn = this;
-      download(payload, btn, function () {
-        modal.querySelector('.pv-done').hidden = false;
-        if (opts.onDownloaded) opts.onDownloaded();
-      });
+      download(payload, this, downloaded);
+    });
+    modal.querySelector('.pv-download-pdf').addEventListener('click', function () {
+      downloadPdf(payload, this, downloaded);
     });
     modal.querySelector('.pv-zoom').addEventListener('click', function (e) {
       var b = e.target.closest('[data-z]');
