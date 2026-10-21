@@ -589,11 +589,18 @@
     _set_row_heights(ws, days_in_month);
 
     ws.views = [{ state: "frozen", xSplit: 0, ySplit: 13 }];
+    // Print setup: Folio (8.5 × 13 in, "long bond"), the whole record on exactly one page
+    var last_row = SECTION2_DATA + 16 * 3 + 8;     // footer: certification + signatures (row 123)
     ws.pageSetup = {
-      paperSize: 5,                 // 5 = US Legal
+      paperSize: 14,                // 14 = Folio 8.5 × 13 in
       orientation: "portrait",
       fitToPage: true,
-      printTitlesRow: "1:13",
+      fitToWidth: 1,
+      fitToHeight: 1,
+      printArea: "A1:N" + last_row,
+      horizontalCentered: true,
+      verticalCentered: false,
+      margins: { left: 0.4, right: 0.4, top: 0.4, bottom: 0.4, header: 0.2, footer: 0.2 },
     };
 
     // ── Serialize & download ──────────────────────────────────────────────

@@ -1390,14 +1390,26 @@ body.pv-open { overflow: hidden; }
 .pv-paper {
   position: absolute;
   top: 0; left: 0;
-  width: 816px;                 /* 8.5 in */
-  min-height: 1344px;           /* 14 in — US legal, like the Excel file */
-  padding: 48px 40px;           /* ~0.5 in margins */
+  width: 816px;                 /* Folio: 8.5 in … */
+  height: 1248px;               /* … × 13 in, same page the Excel file prints on */
+  overflow: hidden;
   background: #fff;
   box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 10px 30px -8px rgba(15,23,42,.28);
   transform-origin: top left;
 }
+/* The record inside the 0.4 in margins; JS scales it down to fit one page */
+.pv-page {
+  position: absolute;
+  top: 38px;
+  left: 38px;
+  width: 740px;
+  transform-origin: top left;
+}
 .pv-paper .fdtr-table { min-width: 0; }
+
+/* Stand-alone preview page uses the same sheet */
+#fdtr-doc { overflow-x: auto; }
+#fdtr-doc .pv-sizer { margin: 0 auto; }
 .pv-paper { cursor: zoom-in; }
 .pv-paper.is-zoomed { cursor: zoom-out; }
 
@@ -1530,22 +1542,33 @@ body.pv-open { overflow: hidden; }
   .pv-spin { animation-duration: 2s; }
 }
 
-/* Print: only the FDTR page, black and white, legal paper */
+/* Print: one Folio page (8.5 × 13 in) with only the FDTR, black and white.
+   The sheet carries its own 0.4 in margins, so the browser's are set to zero. */
 @media print {
-  @page { size: 8.5in 14in; margin: .5in; }
-  .navbar, .site-footer, .preview-actions, .preview-legend, .cal-toast, .tour-root { display: none !important; }
+  @page { size: 8.5in 13in; margin: 0; }
+  html, body { background: #fff !important; }
+  .navbar, .site-footer, .preview-actions, .preview-legend, .cal-toast, .tour-root,
+  .loading-overlay, .page-header { display: none !important; }
   body.pv-open > *:not(.pv-modal) { display: none !important; }
   body.pv-open { overflow: visible; }
   .pv-modal { position: static; padding: 0; background: none; display: block; animation: none; }
   .pv-shell { width: auto; height: auto; box-shadow: none; border-radius: 0; overflow: visible; display: block; }
   .pv-head, .pv-side { display: none !important; }
   .pv-body { display: block; overflow: visible; padding: 0; }
-  .pv-canvas { overflow: visible; padding: 0; background: none; }
-  .pv-sizer { width: auto !important; height: auto !important; }
-  .pv-paper { position: static; transform: none !important; width: auto; min-height: 0; padding: 0; box-shadow: none; }
-  .fdtr-scroll { border: none; box-shadow: none; padding: 0; overflow: visible; }
+  .pv-canvas, #fdtr-doc, .fdtr-scroll { overflow: visible !important; padding: 0 !important; margin: 0 !important;
+                                        background: none !important; border: 0 !important; box-shadow: none !important; }
+  .pv-sizer { width: auto !important; height: auto !important; margin: 0 !important; }
+  .pv-paper {
+    position: relative;
+    transform: none !important;
+    width: 8.5in;
+    height: 12.95in;                 /* a hair under 13 in so rounding never spills onto a 2nd page */
+    box-shadow: none;
+    break-after: avoid;
+    break-inside: avoid;
+  }
   .day-row, .day-row td, .fdtr-colheader th, .th-cat-related { background: #fff !important; }
-  main { padding: 0; }
+  main, .page-container, .preview-page { padding: 0 !important; margin: 0 !important; max-width: none !important; }
 }
 
 

@@ -36,7 +36,7 @@ If you'd rather host it yourself (e.g. to share with a LAN of colleagues in one 
 - **Backup & restore** — one file with everything (details, schedule, saved schedules, monthly entries, past records) to move to a new computer or browser
 - **Past records** — every FDTR you download is kept on the Generate page to download again or edit
 - **Shorter Generate page** — month and summary on top, tabs for holidays / leave / travel / suspended classes, Preview beside them
-- **Preview window** — the FDTR opens over the Generate page as a legal-size page (fit / zoom / tap to zoom) with total hours, hours by type, a pre-download checklist, Download, Print and Make changes
+- **Preview window** — the FDTR opens over the Generate page as a Folio page, 8.5 × 13 in, fitted to one page (fit / zoom / tap to zoom) with total hours, hours by type, a pre-download checklist, Download, Print and Make changes
 - Plain-language wording throughout, keyboard access for calendar blocks, sticky day headers
 
 ## 🆕 What's New in v3.1
@@ -381,7 +381,7 @@ The `docs/` directory is what gets served on GitHub Pages. The Flask app at the 
 - Plain-language copy for non-technical users; cache-busting `?v=` on static assets
 - Generate page redesign: month bar with a live summary, one tabbed card for holidays / leave / travel / suspended classes, Preview and Past records side by side — fits on one laptop screen
 - Backup reminder, browser asked to keep site data (`navigator.storage.persist`, skipped on Firefox); fixed *Set times* needing two clicks
-- Preview window replaces the separate Preview page (still available); one shared renderer; print stylesheet for legal paper
+- Preview window replaces the separate Preview page (still available); one shared renderer; print stylesheet: one Folio page
 
 ### v3.1 (2026-04-18)
 - **Static GitHub Pages build** under `docs/` — colleagues can use the app at `jomvill.github.io/fdtr-generator` with no Python, pip, or install

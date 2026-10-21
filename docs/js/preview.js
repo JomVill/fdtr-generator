@@ -15,7 +15,37 @@
     class: "Class", consultation: "Consultation",
     related_activities: "Related Activities", others: "Others (Adm.)"
   };
-  var PAPER_W = 816;                 // 8.5 in at 96 dpi (US legal width)
+  // Folio sheet ("long bond"), 8.5 × 13 in at 96 px/in, with 0.4 in margins —
+  // the same page and margins the Excel file is set up to print on.
+  var PAPER_W = 816, PAPER_H = 1248, MARGIN = 38;
+  var AREA_W = PAPER_W - 2 * MARGIN, AREA_H = PAPER_H - 2 * MARGIN;
+
+  // Builds sizer > paper > page inside `host` and renders the record into it
+  function mountSheet(host, preview) {
+    host.innerHTML = '<div class="pv-sizer"><div class="pv-paper"><div class="pv-page"></div></div></div>';
+    var paper = host.querySelector('.pv-paper');
+    renderDoc(paper.querySelector('.pv-page'), preview);
+    return { sizer: host.querySelector('.pv-sizer'), paper: paper, scale: fitPage(paper) };
+  }
+
+  // Shrinks the record (never enlarges) so it fits one Folio page, centred like Excel's print
+  function fitPage(paper) {
+    var page = paper.querySelector('.pv-page');
+    page.style.transform = 'none';
+    page.style.left = MARGIN + 'px';
+    var nw = page.scrollWidth, nh = page.scrollHeight;
+    var sc = Math.min(1, AREA_W / nw, AREA_H / nh);
+    page.style.transform = 'scale(' + sc + ')';
+    page.style.left = (MARGIN + (AREA_W - nw * sc) / 2) + 'px';
+    return sc;
+  }
+
+  // Scales the whole sheet on screen; the sizer reserves the scaled size for scrolling
+  function zoomSheet(sizer, paper, z) {
+    paper.style.transform = 'scale(' + z + ')';
+    sizer.style.width  = Math.round(PAPER_W * z) + 'px';
+    sizer.style.height = Math.round(PAPER_H * z) + 'px';
+  }
 
   function escHtml(s) {
     return String(s == null ? "" : s)
@@ -275,7 +305,8 @@
         '<header class="pv-head">' +
           '<div class="pv-head-title">' +
             '<h2 id="pv-title">Check your FDTR</h2>' +
-            '<span>' + escHtml(monthLabel) + ' · ' + escHtml(preview.faculty_name) + '</span>' +
+            '<span>' + escHtml(monthLabel) + ' \u00B7 ' + escHtml(preview.faculty_name) +
+              ' \u00B7 <span class="pv-paper-note">Folio, 1 page</span></span>' +
           '</div>' +
           '<div class="pv-zoom" role="group" aria-label="Zoom">' +
             '<button type="button" data-z="out" aria-label="Zoom out">' + I.minus + '</button>' +
@@ -287,7 +318,7 @@
         '</header>' +
         '<div class="pv-body">' +
           '<div class="pv-canvas" tabindex="0" aria-label="FDTR page preview">' +
-            '<div class="pv-sizer"><div class="pv-paper"></div></div>' +
+
           '</div>' +
           '<aside class="pv-side">' +
             '<div class="pv-side-scroll">' + panelHtml(preview, stats) + '</div>' +
@@ -306,13 +337,16 @@
     document.body.appendChild(modal);
     document.body.classList.add('pv-open');
 
-    var paper = modal.querySelector('.pv-paper');
-    renderDoc(paper, preview);
+    var sheet = mountSheet(modal.querySelector('.pv-canvas'), preview);
+    modal.querySelector('.pv-paper-note').textContent =
+      'Folio, 1 page' + (sheet.scale < 0.995 ? ' (printed at ' + Math.round(sheet.scale * 100) + '% size)' : '');
 
     // Buttons
     modal.querySelector('.pv-close').addEventListener('click', close);
     modal.querySelector('.pv-edit').addEventListener('click', close);
     modal.querySelector('.pv-print').addEventListener('click', function () { window.print(); });
+    window.addEventListener('beforeprint', onBeforePrint);
+    window.addEventListener('afterprint', onAfterPrint);
     modal.querySelector('.pv-download').addEventListener('click', function () {
       var btn = this;
       download(payload, btn, function () {
@@ -367,6 +401,15 @@
 
   function onResize() { if (fitMode) applyZoom(); }
 
+  // Print the sheet at its real size (the record inside is already fitted to one Folio page)
+  function onBeforePrint() {
+    var paper = document.querySelector('.pv-modal .pv-paper');
+    if (paper) paper.style.transform = 'none';
+  }
+  function onAfterPrint() {
+    if (modal) applyZoom();
+  }
+
   // Scale the paper; the sizer reserves the scaled size so scrolling stays correct
   function applyZoom() {
     if (!modal) return;
@@ -377,9 +420,7 @@
       var avail = canvas.clientWidth - (canvas.clientWidth < 600 ? 16 : 48);
       zoom = Math.max(0.3, Math.min(1.25, avail / PAPER_W));
     }
-    paper.style.transform = 'scale(' + zoom + ')';
-    sizer.style.width  = Math.round(PAPER_W * zoom) + 'px';
-    sizer.style.height = Math.round(paper.offsetHeight * zoom) + 'px';
+    zoomSheet(sizer, paper, zoom);
     modal.querySelector('.pv-zoom-val').textContent = Math.round(zoom * 100) + '%';
     modal.querySelector('.pv-fit').classList.toggle('is-active', fitMode);
     paper.classList.toggle('is-zoomed', !fitMode && zoom >= 0.95);
@@ -406,6 +447,8 @@
     modal = null;
     document.body.classList.remove('pv-open');
     window.removeEventListener('resize', onResize);
+    window.removeEventListener('beforeprint', onBeforePrint);
+    window.removeEventListener('afterprint', onAfterPrint);
     if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
   }
 
@@ -424,7 +467,15 @@
     }
 
     var preview = parsed.preview;
-    renderDoc(docEl, preview);
+    var sheet = mountSheet(docEl, preview);
+    function fitWidth() {
+      var z = Math.min(1.25, (docEl.clientWidth - 8) / PAPER_W);
+      zoomSheet(sheet.sizer, sheet.paper, z);
+    }
+    fitWidth();
+    window.addEventListener('resize', fitWidth);
+    window.addEventListener('beforeprint', function () { sheet.paper.style.transform = 'none'; });
+    window.addEventListener('afterprint', fitWidth);
     var monthLabel = (preview.month_name || "") + " " + (preview.year || "");
     var sub = document.getElementById("preview-title-sub");
     if (sub) sub.textContent = monthLabel + " — " + (preview.faculty_name || "");
