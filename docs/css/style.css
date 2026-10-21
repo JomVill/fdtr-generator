@@ -1612,6 +1612,46 @@ label.data-btn { cursor: pointer; }
 .gen-panel[hidden] { display: none; }
 .gen-panel-desc { font-size: .82rem; line-height: 1.5; color: var(--gray-500); margin-bottom: .75rem; }
 
+/* Date ranges: "Date [..] + More than one day" → "From [..] to [..] ×" */
+.date-range .range-label-many { display: none; }
+.date-range.is-range .range-label-one { display: none; }
+.date-range.is-range .range-label-many { display: inline; }
+.range-end-wrap { display: inline-flex; align-items: center; gap: .5rem; }
+.range-end-wrap[hidden] { display: none; }
+.btn-range {
+  min-height: 34px;
+  padding: 0 .7rem;
+  font-family: var(--font);
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--gray-600);
+  background: var(--surface);
+  border: 1.5px dashed var(--gray-300);
+  border-radius: 99px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.btn-range:hover { border-color: var(--gray-400); color: var(--gray-900); background: var(--gray-50); }
+.btn-range[hidden] { display: none; }
+.range-collapse {
+  min-height: 30px;
+  padding: 0 .4rem;
+  font-family: var(--font);
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--gray-500);
+  background: none;
+  border: none;
+  border-radius: var(--r-sm);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.range-collapse:hover { color: var(--gray-800); background: var(--gray-200); }
+.btn-range:focus-visible, .range-collapse:focus-visible { outline: 2px solid var(--brand-mid); outline-offset: 2px; }
+
 /* Preview + saved status */
 .gen-actions { display: flex; flex-direction: column; align-items: stretch; gap: .6rem; }
 .gen-actions .btn-generate { width: 100%; min-width: 0; }
@@ -1650,6 +1690,30 @@ label.data-btn { cursor: pointer; }
 .link-btn:hover { color: var(--brand-hover); }
 
 /* Past records in the narrow right column */
+/* Collapsed by default: a one-line header that opens the list */
+.gen-history { padding: 0 !important; }
+.history-summary {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .9rem 1.25rem;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  cursor: pointer;
+  list-style: none;
+  border-radius: var(--r-lg);
+}
+.history-summary::-webkit-details-marker { display: none; }
+.history-summary:hover { background: var(--gray-50); }
+.history-summary:focus-visible { outline: 2px solid var(--brand-mid); outline-offset: -2px; }
+.history-summary-text { flex: 1; }
+.history-chevron { color: var(--gray-400); transition: transform .15s; }
+.history-details[open] .history-chevron { transform: rotate(180deg); }
+.history-details[open] .history-summary { border-radius: var(--r-lg) var(--r-lg) 0 0; }
+.history-details .history-list { padding: 0 1.25rem 1.1rem; margin-top: 0; }
+@media (prefers-reduced-motion: reduce) { .history-chevron { transition: none; } }
+
 .gen-history .history-row { padding: .55rem .65rem; gap: .4rem; }
 .gen-history .history-month { font-size: .86rem; }
 .gen-history .history-actions .btn-sm { min-height: 32px; padding: .25rem .55rem; font-size: .74rem; }

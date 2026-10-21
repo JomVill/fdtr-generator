@@ -122,7 +122,8 @@
         {
           target: '#history-card',
           title: 'Your past records',
-          body: 'Every FDTR you download is kept here, so you can download it again or make changes later.',
+          body: 'Every FDTR you download is kept here. Click <strong>Past records</strong> to open the list ' +
+                'and download one again or make changes.',
           next: 'Done'
         }
       ]

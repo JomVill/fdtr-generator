@@ -352,6 +352,11 @@
     if (!card) return;
     var list = card.querySelector('.history-list');
     var h = getHistory();
+    var count = document.getElementById('history-count');
+    if (count) {
+      count.textContent = h.length;
+      count.classList.toggle('is-zero', !h.length);
+    }
 
     if (!h.length) {
       list.innerHTML = '<p class="history-empty">Nothing here yet. Each FDTR you download is kept here ' +

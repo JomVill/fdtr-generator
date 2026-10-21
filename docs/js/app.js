@@ -61,6 +61,8 @@ function addRow(type) {
     el.value = start;
   });
   container.appendChild(clone);
+  var added = container.lastElementChild;
+  if (added && added.classList.contains('date-range')) setRangeMode(added, false);
   if (!_restoringForm) {
     serializeGenerateForm();
     // Put the cursor in the new row so people can type right away
@@ -74,6 +76,56 @@ function removeRow(btn) {
   var row = btn.closest('.dynamic-row');
   if (row) row.remove();
   serializeGenerateForm();
+}
+
+/* ── Date ranges (travel, suspended classes): one day unless expanded ── */
+// While a row is "one day", its hidden end date simply copies the start date,
+// so the saved data and the FDTR generator work exactly as before.
+function setRangeMode(row, many) {
+  var wrap  = row.querySelector('.range-end-wrap');
+  var btn   = row.querySelector('.btn-range');
+  var start = row.querySelector('.range-start');
+  var end   = row.querySelector('.range-end');
+  if (!wrap || !start || !end) return;
+  row.classList.toggle('is-range', many);
+  wrap.hidden = !many;
+  if (btn) btn.hidden = many;
+  start.setAttribute('aria-label', many ? 'First day' : 'Date');
+  end.min = start.value || '';
+  if (!many || !end.value || end.value < start.value) end.value = start.value;
+}
+
+function toggleRange(btn, many) {
+  var row = btn.closest('.dynamic-row');
+  setRangeMode(row, many);
+  serializeGenerateForm();
+  var focusEl = many ? row.querySelector('.range-end') : row.querySelector('.btn-range');
+  if (focusEl) {
+    focusEl.focus();
+    // Open the calendar picker straight away where the browser allows it
+    if (many && focusEl.showPicker) { try { focusEl.showPicker(); } catch (e) {} }
+  }
+}
+
+// Keep each row's end date in step with its start date
+function onRangeInput(e) {
+  var t = e.target;
+  if (!t.classList) return;
+  var row = t.closest('.dynamic-row');
+  if (t.classList.contains('range-start')) {
+    setRangeMode(row, row.classList.contains('is-range'));
+  } else if (t.classList.contains('range-end') && e.type === 'change') {
+    // A last day before the first day isn't possible — snap it back
+    var start = row.querySelector('.range-start');
+    if (t.value && start.value && t.value < start.value) t.value = start.value;
+  }
+}
+
+function syncAllRanges() {
+  document.querySelectorAll('.dynamic-row.date-range').forEach(function (row) {
+    var s = row.querySelector('.range-start'), e = row.querySelector('.range-end');
+    setRangeMode(row, !!(e && e.value && s && e.value !== s.value));
+  });
 }
 
 /* ── Time toggle on Related Activities rows ─────────────────────── */
@@ -278,6 +330,7 @@ function restoreGenerateForm() {
   restoreRows('related',  data.related,  ['related_start[]','related_end[]','related_time_in[]','related_time_out[]']);
   _restoringForm = false;
 
+  syncAllRanges();
   serializeGenerateForm();
 }
 
@@ -563,6 +616,8 @@ function initGeneratePage() {
 
   var form = document.getElementById('generate-form');
   if (form) {
+    form.addEventListener('input',  onRangeInput);
+    form.addEventListener('change', onRangeInput);
     form.addEventListener('change', serializeGenerateForm);
     form.addEventListener('input',  serializeGenerateForm);
 

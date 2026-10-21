@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20261021c"/>
+  <link rel="stylesheet" href="css/style.css?v=20261021f"/>
 </head>
 <body>
 
@@ -140,7 +140,7 @@
           </button>
         </div>
         <div class="gen-panel" role="tabpanel" id="panel-travel" aria-labelledby="tab-travel" hidden>
-          <p class="gen-panel-desc">The dates of each Travel Authority (TA). Every day in the range shows &ldquo;ON TRAVEL&rdquo; with the TA number.</p>
+          <p class="gen-panel-desc">Each Travel Authority (TA) and its number. Those days show &ldquo;ON TRAVEL&rdquo;.</p>
           <div id="travel-container"></div>
           <button type="button" class="btn-add-row" onclick="addRow('travel')">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -183,18 +183,25 @@
 
     <!-- Right column (bottom): past records -->
     <section class="card gen-history" id="history-card">
-      <h2 class="card-title">
-        <span class="card-title-icon">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="1 4 1 10 7 10"/>
-            <path d="M3.51 15a9 9 0 1 0 .49-3.21"/>
-            <polyline points="12 7 12 12 15 14"/>
+      <details class="history-details">
+        <summary class="history-summary">
+          <span class="card-title-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="1 4 1 10 7 10"/>
+              <path d="M3.51 15a9 9 0 1 0 .49-3.21"/>
+              <polyline points="12 7 12 12 15 14"/>
+            </svg>
+          </span>
+          <span class="history-summary-text">Past records</span>
+          <span class="gen-count is-zero" id="history-count">0</span>
+          <svg class="history-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="6 9 12 15 18 9"/>
           </svg>
-        </span>
-        Past records
-      </h2>
-      <div class="history-list"></div>
+        </summary>
+        <div class="history-list"></div>
+      </details>
     </section>
 
   </form>
@@ -237,11 +244,16 @@
 </template>
 
 <template id="travel-row-template">
-  <div class="dynamic-row">
-    <label class="inline-label">From</label>
-    <input type="date" name="travel_start[]" class="form-input input-date" required/>
-    <label class="inline-label">To</label>
-    <input type="date" name="travel_end[]" class="form-input input-date" required/>
+  <div class="dynamic-row date-range">
+    <span class="inline-label range-label-one">Date</span>
+    <span class="inline-label range-label-many">From</span>
+    <input type="date" name="travel_start[]" class="form-input input-date range-start" aria-label="Date" required/>
+    <span class="range-end-wrap" hidden>
+      <span class="inline-label">to</span>
+      <input type="date" name="travel_end[]" class="form-input input-date range-end" aria-label="Last day" required/>
+      <button type="button" class="range-collapse" onclick="toggleRange(this, false)">One day only</button>
+    </span>
+    <button type="button" class="btn-range" onclick="toggleRange(this, true)">+ More than one day</button>
     <label class="inline-label">TA No.</label>
     <input type="text" name="travel_ta[]" placeholder="TA number, e.g. 2026020070"
            class="form-input input-ta" required/>
@@ -256,11 +268,16 @@
 </template>
 
 <template id="related-row-template">
-  <div class="dynamic-row">
-    <label class="inline-label">From</label>
-    <input type="date" name="related_start[]" class="form-input input-date" required/>
-    <label class="inline-label">To</label>
-    <input type="date" name="related_end[]"   class="form-input input-date" required/>
+  <div class="dynamic-row date-range">
+    <span class="inline-label range-label-one">Date</span>
+    <span class="inline-label range-label-many">From</span>
+    <input type="date" name="related_start[]" class="form-input input-date range-start" aria-label="Date" required/>
+    <span class="range-end-wrap" hidden>
+      <span class="inline-label">to</span>
+      <input type="date" name="related_end[]" class="form-input input-date range-end" aria-label="Last day" required/>
+      <button type="button" class="range-collapse" onclick="toggleRange(this, false)">One day only</button>
+    </span>
+    <button type="button" class="btn-range" onclick="toggleRange(this, true)">+ More than one day</button>
     <button type="button" class="btn-add-time" onclick="toggleTime(this)">+ Set times</button>
     <div class="time-slots">
       <label class="inline-label">Time</label>
@@ -303,13 +320,13 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 
-<script src="js/calendar.js?v=20261021c"></script>
-<script src="js/nav.js?v=20261021c"></script>
-<script src="js/special-days.js?v=20261021c"></script>
-<script src="js/generator.js?v=20261021c"></script>
-<script src="js/app.js?v=20261021c"></script>
-<script src="js/data.js?v=20261021c"></script>
-<script src="js/tour.js?v=20261021c"></script>
+<script src="js/calendar.js?v=20261021f"></script>
+<script src="js/nav.js?v=20261021f"></script>
+<script src="js/special-days.js?v=20261021f"></script>
+<script src="js/generator.js?v=20261021f"></script>
+<script src="js/app.js?v=20261021f"></script>
+<script src="js/data.js?v=20261021f"></script>
+<script src="js/tour.js?v=20261021f"></script>
 
 </body>
 </html>
