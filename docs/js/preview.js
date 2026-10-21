@@ -28,17 +28,27 @@
     return { sizer: host.querySelector('.pv-sizer'), paper: paper, scale: fitPage(paper) };
   }
 
-  // Shrinks the record (never enlarges) so it fits one Folio page, centred like Excel's print
+  // Fits the record onto one Folio page with no empty side margins: first widen it
+  // until its shape matches the printable area (it's much taller than wide), then
+  // scale it down to fit — the same thing the Excel file's wider columns achieve.
   function fitPage(paper) {
     var page = paper.querySelector('.pv-page');
+    var ratio = AREA_W / AREA_H;
     page.style.transform = 'none';
     page.style.left = MARGIN + 'px';
+    page.style.width = AREA_W + 'px';
+    for (var i = 0; i < 3; i++) {                  // wider → less wrapping → a bit shorter; settle
+      var want = Math.max(AREA_W, Math.round(page.scrollHeight * ratio));
+      if (Math.abs(want - page.offsetWidth) < 2) break;
+      page.style.width = want + 'px';
+    }
     var nw = page.scrollWidth, nh = page.scrollHeight;
     var sc = Math.min(1, AREA_W / nw, AREA_H / nh);
     page.style.transform = 'scale(' + sc + ')';
     page.style.left = (MARGIN + (AREA_W - nw * sc) / 2) + 'px';
     return sc;
   }
+
 
   // Scales the whole sheet on screen; the sizer reserves the scaled size for scrolling
   function zoomSheet(sizer, paper, z) {

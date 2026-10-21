@@ -371,16 +371,20 @@
   }
 
   // ── Column widths & row heights ──────────────────────────────────────────
+  // Columns are wide enough that the sheet has the same shape as a Folio page
+  // (8 × 12.5 in printable at 0.25 in margins). Fit-to-one-page then fills the
+  // whole width instead of leaving empty side margins.
   function _set_column_widths(ws) {
-    ws.getColumn("A").width = 5.0;
+    ws.getColumn("A").width = 8.0;
     ["B","C","E","F","H","I","K","L"].forEach(function (c) {
-      ws.getColumn(c).width = 9.0;
+      ws.getColumn(c).width = 17.0;
     });
     ["D","G","J","M"].forEach(function (c) {
-      ws.getColumn(c).width = 5.0;
+      ws.getColumn(c).width = 9.5;   // not 9.0: ExcelJS treats exactly 9 as "default" and drops it
     });
-    ws.getColumn("N").width = 6.0;
+    ws.getColumn("N").width = 11.0;
   }
+
 
   function _set_row_heights(ws, days_in_month) {
     for (var r = 1; r <= 9; r++) ws.getRow(r).height = 13.0;
