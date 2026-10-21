@@ -280,8 +280,8 @@ function serializeGenerateForm() {
   }
 
   var data = {
-    holidays: getRows('holidays-container', ['holiday_date[]','holiday_label[]']),
-    leave:    getRows('leave-container',    ['leave_date[]','leave_type[]']),
+    holidays: getRows('holidays-container', ['holiday_date[]','holiday_end[]','holiday_label[]']),
+    leave:    getRows('leave-container',    ['leave_date[]','leave_end[]','leave_type[]']),
     travel:   getRows('travel-container',   ['travel_start[]','travel_end[]','travel_ta[]']),
     related:  getRows('related-container',  ['related_start[]','related_end[]','related_time_in[]','related_time_out[]']),
   };
@@ -324,8 +324,8 @@ function restoreGenerateForm() {
   }
 
   _restoringForm = true;
-  restoreRows('holidays', data.holidays, ['holiday_date[]','holiday_label[]']);
-  restoreRows('leave',    data.leave,    ['leave_date[]','leave_type[]']);
+  restoreRows('holidays', data.holidays, ['holiday_date[]','holiday_end[]','holiday_label[]']);
+  restoreRows('leave',    data.leave,    ['leave_date[]','leave_end[]','leave_type[]']);
   restoreRows('travel',   data.travel,   ['travel_start[]','travel_end[]','travel_ta[]']);
   restoreRows('related',  data.related,  ['related_start[]','related_end[]','related_time_in[]','related_time_out[]']);
   _restoringForm = false;
@@ -456,6 +456,41 @@ function buildPayload() {
     return out;
   }
 
+  // Holiday and leave rows can cover several days. The FDTR builder takes one
+  // date per entry, so a range becomes one entry per day. Weekends with no
+  // scheduled blocks are skipped (same rule as suspended classes) so they stay
+  // plain SAT/SUN; a single chosen date is always kept as-is.
+  function expandDays(startName, endName, valueName) {
+    var starts = collectList(startName), ends = collectList(endName), vals = collectList(valueName);
+    var dates = [], values = [];
+    function iso(dt) {
+      return dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2);
+    }
+    function parse(str) {
+      var p = (str || '').split('-');
+      return p.length === 3 ? new Date(+p[0], +p[1] - 1, +p[2]) : null;
+    }
+    var dayKeys = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+    starts.forEach(function (st, i) {
+      var a = parse(st), b = parse(ends[i]) || a;
+      if (!a) { dates.push(st); values.push(vals[i]); return; }   // keep as-is (blank, etc.)
+      if (b < a) b = a;
+      if (b.getTime() === a.getTime()) { dates.push(st); values.push(vals[i]); return; }
+      for (var d = new Date(a); d <= b; d.setDate(d.getDate() + 1)) {
+        var wd = d.getDay();
+        if (wd === 0 || wd === 6) {
+          var blocks = schedule[dayKeys[wd]];
+          if (!blocks || !blocks.length) continue;
+        }
+        dates.push(iso(d));
+        values.push(vals[i]);
+      }
+    });
+    return { dates: dates, values: values };
+  }
+  var hol   = expandDays('holiday_date[]', 'holiday_end[]', 'holiday_label[]');
+  var leave = expandDays('leave_date[]',   'leave_end[]',   'leave_type[]');
+
   return {
     profile: {
       faculty_name: (profile.faculty_name || '').trim().toUpperCase(),
@@ -466,10 +501,10 @@ function buildPayload() {
     month: m,
     year:  y,
     schedule: schedule,
-    holiday_dates:  collectList('holiday_date[]'),
-    holiday_labels: collectList('holiday_label[]'),
-    leave_dates:    collectList('leave_date[]'),
-    leave_types:    collectList('leave_type[]'),
+    holiday_dates:  hol.dates,
+    holiday_labels: hol.values,
+    leave_dates:    leave.dates,
+    leave_types:    leave.values,
     travel_starts:  collectList('travel_start[]'),
     travel_ends:    collectList('travel_end[]'),
     travel_tas:     collectList('travel_ta[]'),
@@ -489,6 +524,32 @@ var GEN_MONTHS = ['January','February','March','April','May','June',
 function genRowCount(type) {
   var c = document.getElementById(type + '-container');
   return c ? c.querySelectorAll('.dynamic-row').length : 0;
+}
+
+// Days that will actually be marked on the FDTR for a tab's rows.
+// Matches how they're recorded: in a range, weekends with nothing scheduled are
+// skipped (except for travel, which marks every day); a single date always counts.
+function genDayCount(type) {
+  var c = document.getElementById(type + '-container');
+  if (!c) return 0;
+  var sched = lsGetJSON(LS_SCHEDULE) || {};
+  var keys = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  var total = 0;
+  c.querySelectorAll('.dynamic-row').forEach(function (row) {
+    var st = row.querySelector('.range-start'), en = row.querySelector('.range-end');
+    if (!st || !st.value) return;
+    var a = new Date(st.value + 'T00:00'), b = new Date(((en && en.value) || st.value) + 'T00:00');
+    if (!(b > a)) { total += 1; return; }
+    for (var d = new Date(a); d <= b; d.setDate(d.getDate() + 1)) {
+      var wd = d.getDay();
+      if (type !== 'travel' && (wd === 0 || wd === 6)) {
+        var blocks = sched[keys[wd]];
+        if (!blocks || !blocks.length) continue;
+      }
+      total++;
+    }
+  });
+  return total;
 }
 
 function selectGenTab(type, focus) {
@@ -526,15 +587,15 @@ function updateGenSummary() {
   var items = ['<li class="gen-summary-main">' + GEN_MONTHS[m - 1] + ' ' + y + ' has <strong>' +
                weekdays + ' weekdays</strong>.</li>'];
   var parts = [
-    ['holidays', 'holiday', 'holidays'],
-    ['leave',    'leave day', 'leave days'],
-    ['travel',   'travel period', 'travel periods'],
-    ['related',  'suspended-class period', 'suspended-class periods']
+    ['holidays', 'holiday'],
+    ['leave',    'leave'],
+    ['travel',   'travel'],
+    ['related',  'suspended classes']
   ];
   var any = false;
   parts.forEach(function (p) {
-    var n = genRowCount(p[0]);
-    if (n) { any = true; items.push('<li>' + n + ' ' + (n === 1 ? p[1] : p[2]) + '</li>'); }
+    var n = genDayCount(p[0]);
+    if (n) { any = true; items.push('<li>' + n + ' day' + (n === 1 ? '' : 's') + ' of ' + p[1] + '</li>'); }
   });
   if (!any) items.push('<li class="gen-summary-none">No changes added &mdash; your normal schedule will be used.</li>');
   list.innerHTML = items.join('');
@@ -577,7 +638,9 @@ function initGenerateLayout() {
   var form = document.getElementById('generate-form');
   var t = null;
   if (saved && form) {
+    form.addEventListener('change', updateGenSummary);
     form.addEventListener('input', function () {
+      updateGenSummary();
       saved.classList.add('is-flash');
       clearTimeout(t);
       t = setTimeout(function () { saved.classList.remove('is-flash'); }, 1200);

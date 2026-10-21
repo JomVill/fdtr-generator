@@ -1655,6 +1655,7 @@ label.data-btn { cursor: pointer; }
 /* Preview + saved status */
 .gen-actions { display: flex; flex-direction: column; align-items: stretch; gap: .6rem; }
 .gen-actions .btn-generate { width: 100%; min-width: 0; }
+.gen-actions .gen-actions-title { margin-bottom: .1rem; }
 .gen-saved {
   display: flex;
   align-items: center;

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20261021f"/>
+  <link rel="stylesheet" href="css/style.css?v=20261021h"/>
 </head>
 <body>
 
@@ -118,7 +118,7 @@
       </div>
 
         <div class="gen-panel" role="tabpanel" id="panel-holidays" aria-labelledby="tab-holidays">
-          <p class="gen-panel-desc">Public holidays and special non-working days. Weekends are already handled.</p>
+          <p class="gen-panel-desc">Public holidays and special non-working days. For several days in a row, use &ldquo;More than one day&rdquo;.</p>
           <div id="holidays-container"></div>
           <button type="button" class="btn-add-row" onclick="addRow('holidays')">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -129,7 +129,7 @@
           </button>
         </div>
         <div class="gen-panel" role="tabpanel" id="panel-leave" aria-labelledby="tab-leave" hidden>
-          <p class="gen-panel-desc">Each day you were on leave. That day will show &ldquo;ON [TYPE]&rdquo;, for example &ldquo;ON SICK LEAVE&rdquo;.</p>
+          <p class="gen-panel-desc">Days you were on leave. They show &ldquo;ON [TYPE]&rdquo;, for example &ldquo;ON SICK LEAVE&rdquo;. Free weekends in a range are skipped.</p>
           <div id="leave-container"></div>
           <button type="button" class="btn-add-row" onclick="addRow('leave')">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -165,13 +165,14 @@
 
     <!-- Right column (middle): preview -->
     <section class="card gen-actions" id="actions-card">
+      <h2 class="card-title gen-actions-title">3. Check and download</h2>
       <button type="submit" class="btn btn-primary btn-lg btn-generate" id="generate-btn">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
           <circle cx="12" cy="12" r="3"/>
         </svg>
-        3. Preview my FDTR
+        Preview my FDTR
       </button>
       <p class="gen-saved" id="gen-saved">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -215,8 +216,16 @@
 
 <!-- Row templates -->
 <template id="holiday-row-template">
-  <div class="dynamic-row">
-    <input type="date" name="holiday_date[]" class="form-input input-date" required/>
+  <div class="dynamic-row date-range">
+    <span class="inline-label range-label-one">Date</span>
+    <span class="inline-label range-label-many">From</span>
+    <input type="date" name="holiday_date[]" class="form-input input-date range-start" aria-label="Date" required/>
+    <span class="range-end-wrap" hidden>
+      <span class="inline-label">to</span>
+      <input type="date" name="holiday_end[]" class="form-input input-date range-end" aria-label="Last day"/>
+      <button type="button" class="range-collapse" onclick="toggleRange(this, false)">One day only</button>
+    </span>
+    <button type="button" class="btn-range" onclick="toggleRange(this, true)">+ More than one day</button>
     <input type="text" name="holiday_label[]" placeholder="Holiday name, e.g. RIZAL DAY"
            class="form-input input-label" required/>
     <button type="button" class="btn-remove-row" onclick="removeRow(this)" title="Remove">
@@ -230,8 +239,16 @@
 </template>
 
 <template id="leave-row-template">
-  <div class="dynamic-row">
-    <input type="date" name="leave_date[]" class="form-input input-date" required/>
+  <div class="dynamic-row date-range">
+    <span class="inline-label range-label-one">Date</span>
+    <span class="inline-label range-label-many">From</span>
+    <input type="date" name="leave_date[]" class="form-input input-date range-start" aria-label="Date" required/>
+    <span class="range-end-wrap" hidden>
+      <span class="inline-label">to</span>
+      <input type="date" name="leave_end[]" class="form-input input-date range-end" aria-label="Last day"/>
+      <button type="button" class="range-collapse" onclick="toggleRange(this, false)">One day only</button>
+    </span>
+    <button type="button" class="btn-range" onclick="toggleRange(this, true)">+ More than one day</button>
     <select name="leave_type[]" class="form-input input-select"></select>
     <button type="button" class="btn-remove-row" onclick="removeRow(this)" title="Remove">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -320,13 +337,13 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 
-<script src="js/calendar.js?v=20261021f"></script>
-<script src="js/nav.js?v=20261021f"></script>
-<script src="js/special-days.js?v=20261021f"></script>
-<script src="js/generator.js?v=20261021f"></script>
-<script src="js/app.js?v=20261021f"></script>
-<script src="js/data.js?v=20261021f"></script>
-<script src="js/tour.js?v=20261021f"></script>
+<script src="js/calendar.js?v=20261021h"></script>
+<script src="js/nav.js?v=20261021h"></script>
+<script src="js/special-days.js?v=20261021h"></script>
+<script src="js/generator.js?v=20261021h"></script>
+<script src="js/app.js?v=20261021h"></script>
+<script src="js/data.js?v=20261021h"></script>
+<script src="js/tour.js?v=20261021h"></script>
 
 </body>
 </html>
