@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/style.css?v=20261021"/>
 </head>
 <body>
 
@@ -48,10 +48,21 @@
 <main>
 <div class="page-container">
   <div class="page-header">
-    <div class="step-badge">Step 2 of 2</div>
-    <h1>Generate Monthly Record</h1>
+    <div class="page-header-top">
+      <div class="step-badge">Step 2 of 2</div>
+      <button type="button" class="tour-replay" data-tour-start>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        Take the tour
+      </button>
+    </div>
+    <h1>Make your FDTR for a month</h1>
     <p class="page-desc">
-      Generating for <strong id="gen-faculty-name">(faculty name)</strong> &mdash; <span id="gen-faculty-dept">(department)</span>.
+      For <strong id="gen-faculty-name">(faculty name)</strong> &mdash; <span id="gen-faculty-dept">(department)</span>.
       <a href="setup.html" class="link-edit">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
@@ -59,7 +70,7 @@
           <line x1="19" y1="12" x2="5" y2="12"/>
           <polyline points="12 19 5 12 12 5"/>
         </svg>
-        Edit profile &amp; schedule
+        Change my details or schedule
       </a>
     </p>
   </div>
@@ -78,7 +89,7 @@
             <line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
         </span>
-        Month &amp; Year
+        Which month?
       </h2>
       <div class="form-row">
         <div class="form-group form-group-sm">
@@ -104,12 +115,12 @@
             <line x1="8" y1="16" x2="12" y2="16"/>
           </svg>
         </span>
-        Class Suspension / Related Activities
+        Suspended classes &amp; holidays
       </h2>
       <p class="card-desc">
-        Days when classes are suspended but you still report. Time slots will be recorded under
-        <em>Related Activities</em> (H&ndash;J). Optionally set a custom time-in/out &mdash; otherwise
-        defaults to <strong>8:00 AM&ndash;12:00 PM</strong> and <strong>1:00 PM&ndash;5:00 PM</strong>.
+        Add days when classes were suspended but you still reported for work. They are recorded as
+        <em>Related Activities</em>. If you don&rsquo;t add times, <strong>8:00 AM&ndash;12:00 PM</strong>
+        and <strong>1:00 PM&ndash;5:00 PM</strong> are used.
       </p>
       <div id="related-container"></div>
       <button type="button" class="btn-add-row" onclick="addRow('related')">
@@ -118,7 +129,7 @@
           <line x1="12" y1="5" x2="12" y2="19"/>
           <line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
-        Add Suspension / Related Activity Period
+        Add suspended day(s)
       </button>
 
       <hr class="card-inner-sep">
@@ -150,7 +161,7 @@
           <line x1="12" y1="5" x2="12" y2="19"/>
           <line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
-        Add Holiday
+        Add a holiday
       </button>
     </section>
 
@@ -163,9 +174,9 @@
             <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
           </svg>
         </span>
-        Leave Days
+        Days on leave
       </h2>
-      <p class="card-desc">Individual days on leave. The label will appear as <em>"ON [TYPE]"</em>.</p>
+      <p class="card-desc">Add each day you were on leave and choose the type. That day will show <em>&ldquo;ON [TYPE]&rdquo;</em>, for example &ldquo;ON SICK LEAVE&rdquo;.</p>
       <div id="leave-container"></div>
       <button type="button" class="btn-add-row" onclick="addRow('leave')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -173,7 +184,7 @@
           <line x1="12" y1="5" x2="12" y2="19"/>
           <line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
-        Add Leave Day
+        Add a leave day
       </button>
     </section>
 
@@ -186,9 +197,9 @@
             <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/>
           </svg>
         </span>
-        Official Travel
+        Official travel
       </h2>
-      <p class="card-desc">Travel Authority (TA) periods. All days in the range will be marked <em>"ON TRAVEL, TA NO: &hellip;"</em>.</p>
+      <p class="card-desc">Add the dates of each Travel Authority (TA). Every day in that range will show <em>&ldquo;ON TRAVEL&rdquo;</em> with the TA number.</p>
       <div id="travel-container"></div>
       <button type="button" class="btn-add-row" onclick="addRow('travel')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -196,7 +207,7 @@
           <line x1="12" y1="5" x2="12" y2="19"/>
           <line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
-        Add Travel Period
+        Add a travel period
       </button>
     </section>
 
@@ -218,7 +229,7 @@
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
           <circle cx="12" cy="12" r="3"/>
         </svg>
-        Preview Record
+        Preview my FDTR
       </button>
       <a href="setup.html" class="btn btn-secondary btn-lg">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -228,10 +239,27 @@
         </svg>
         Back to Schedule
       </a>
-      <p class="form-hint center-hint">Data is auto-saved as you type. Use Save to confirm before previewing.</p>
+      <p class="form-hint center-hint">What you enter is saved automatically for each month.</p>
     </div>
 
   </form>
+
+  <!-- Past records: every downloaded FDTR, kept for downloading again -->
+  <section class="card" id="history-card">
+    <h2 class="card-title">
+      <span class="card-title-icon">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 1 0 .49-3.21"/>
+          <polyline points="12 7 12 12 15 14"/>
+        </svg>
+      </span>
+      Past records
+    </h2>
+    <p class="card-desc">FDTRs you&rsquo;ve downloaded in this browser. They&rsquo;re included in your backup file too.</p>
+    <div class="history-list"></div>
+  </section>
 </div>
 
 <!-- Loading overlay -->
@@ -244,7 +272,7 @@
 <template id="holiday-row-template">
   <div class="dynamic-row">
     <input type="date" name="holiday_date[]" class="form-input input-date" required/>
-    <input type="text" name="holiday_label[]" placeholder="Holiday name (e.g. RIZAL DAY)"
+    <input type="text" name="holiday_label[]" placeholder="Holiday name, e.g. RIZAL DAY"
            class="form-input input-label" required/>
     <button type="button" class="btn-remove-row" onclick="removeRow(this)" title="Remove">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -277,7 +305,7 @@
     <label class="inline-label">To</label>
     <input type="date" name="travel_end[]" class="form-input input-date" required/>
     <label class="inline-label">TA No.</label>
-    <input type="text" name="travel_ta[]" placeholder="e.g. 2026020070"
+    <input type="text" name="travel_ta[]" placeholder="TA number, e.g. 2026020070"
            class="form-input input-ta" required/>
     <button type="button" class="btn-remove-row" onclick="removeRow(this)" title="Remove">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -295,7 +323,7 @@
     <input type="date" name="related_start[]" class="form-input input-date" required/>
     <label class="inline-label">To</label>
     <input type="date" name="related_end[]"   class="form-input input-date" required/>
-    <button type="button" class="btn-add-time" onclick="toggleTime(this)">+ Add time</button>
+    <button type="button" class="btn-add-time" onclick="toggleTime(this)">+ Set times</button>
     <div class="time-slots">
       <label class="inline-label">Time</label>
       <input type="time" name="related_time_in[]"  class="form-input input-time" title="Custom time-in"/>
@@ -337,11 +365,13 @@
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 
-<script src="js/calendar.js"></script>
-<script src="js/nav.js"></script>
-<script src="js/special-days.js"></script>
-<script src="js/generator.js"></script>
-<script src="js/app.js"></script>
+<script src="js/calendar.js?v=20261021"></script>
+<script src="js/nav.js?v=20261021"></script>
+<script src="js/special-days.js?v=20261021"></script>
+<script src="js/generator.js?v=20261021"></script>
+<script src="js/app.js?v=20261021"></script>
+<script src="js/data.js?v=20261021"></script>
+<script src="js/tour.js?v=20261021"></script>
 
 </body>
 </html>

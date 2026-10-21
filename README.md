@@ -27,6 +27,16 @@ If you'd rather host it yourself (e.g. to share with a LAN of colleagues in one 
 
 ---
 
+## 🆕 What's New in v3.2 (GitHub Pages site)
+
+- **Guided tour** on first visit (Setup and Generate pages), with animated demos of adding a block and choosing its category; replay anytime with *Take the tour*
+- **Easier calendar** — double-click (or double-tap) for a 1-hour block; works on phones and tablets (press and hold, then drag)
+- **New block editor** — name as the title, one-click category buttons, *Same time on other days* (e.g. M/W/F), **Copy**, and Alt/Option-drag to duplicate
+- **Undo** after deleting, loading a saved schedule, or removing a repeated block
+- **Backup & restore** — one file with everything (details, schedule, saved schedules, monthly entries, past records) to move to a new computer or browser
+- **Past records** — every FDTR you download is kept on the Generate page to download again or edit
+- Plain-language wording throughout, keyboard access for calendar blocks, sticky day headers
+
 ## 🆕 What's New in v3.1
 
 - **Zero-install static site** on GitHub Pages — the entire app now runs in the browser via ExcelJS
@@ -247,9 +257,9 @@ Before filling in the calendar, retrieve your official class assignments:
 
 #### Using the calendar
 
-- **Drag** on any day column to create a new time block
-- **Click** an existing block to edit its label or category
-- **Drag** the bottom edge of a block to resize it
+- **Double-click** an empty spot for a 1-hour block, or **drag** down a day column (on a phone: double-tap, or press and hold, then drag)
+- **Click** a block to set its category and name, tick **other days with the same time**, **Copy** it, or **Delete** it (with Undo)
+- **Drag** a block to move it, its bottom edge to resize it, or hold **Alt/Option** while dragging to make a copy
 
 Each time block belongs to one of four categories:
 
@@ -323,7 +333,9 @@ fdtr-generator/
 │   ├── css/style.css
 │   ├── js/
 │   │   ├── app.js          #    localStorage persistence, dynamic rows, presets
-│   │   ├── calendar.js     #    Visual calendar widget
+│   │   ├── calendar.js     #    Visual calendar widget (pointer/touch, editor, repeat, undo)
+│   │   ├── data.js         #    Backup & restore file, past records
+│   │   ├── tour.js         #    First-visit guided tour
 │   │   ├── special-days.js #    Date-range expander (holidays, leave, travel, suspensions)
 │   │   ├── generator.js    #    ExcelJS port of the Python generator
 │   │   ├── preview.js      #    Client-side preview table renderer
@@ -358,6 +370,13 @@ The `docs/` directory is what gets served on GitHub Pages. The Flask app at the 
 ---
 
 ## 📋 Changelog
+
+### v3.2 (2026-10-21)
+- Guided tour with animated demos on Setup and Generate; *Take the tour* to replay
+- Calendar: double-click / double-tap to add, touch support (press and hold to drag), sticky day headers, keyboard access (Tab, Enter, Delete)
+- Block editor redesign: category buttons, *Same time on other days*, Copy (Ctrl/⌘+D), Alt-drag to duplicate, delete from one or all repeated days, Undo
+- Backup & restore (single `fdtr-backup-*.json` file, also reads old schedule exports) and Past records on the Generate page
+- Plain-language copy for non-technical users; cache-busting `?v=` on static assets
 
 ### v3.1 (2026-04-18)
 - **Static GitHub Pages build** under `docs/` — colleagues can use the app at `jomvill.github.io/fdtr-generator` with no Python, pip, or install

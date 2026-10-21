@@ -127,17 +127,19 @@
             .then(function () {
               if (overlay) overlay.classList.remove("active");
               btn.disabled = false;
+              // Keep a copy so it can be downloaded again from the Generate page
+              if (window.fdtrData) window.fdtrData.recordHistory(payload);
             }, function (err) {
               console.error(err);
               if (overlay) overlay.classList.remove("active");
               btn.disabled = false;
-              alert("Download failed: " + (err && err.message ? err.message : err));
+              alert("Sorry, the download didn\u2019t work. Please try again.\n\nDetails: " + (err && err.message ? err.message : err));
             });
         } catch (err) {
           console.error(err);
           if (overlay) overlay.classList.remove("active");
           btn.disabled = false;
-          alert("Download failed: " + (err && err.message ? err.message : err));
+          alert("Sorry, the download didn\u2019t work. Please try again.\n\nDetails: " + (err && err.message ? err.message : err));
         }
       });
     });

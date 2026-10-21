@@ -71,7 +71,7 @@ function toggleTime(btn) {
   if (!slots) return;
   var isVisible = slots.style.display !== 'none';
   slots.style.display = isVisible ? 'none' : 'flex';
-  btn.textContent = isVisible ? '+ Add time' : '\u2212 Remove time';
+  btn.textContent = isVisible ? '+ Set times' : '\u2212 Use default times';
   serializeGenerateForm();
 }
 
@@ -103,7 +103,7 @@ function populatePresetSelect() {
   var sel = document.getElementById('preset-select');
   if (!sel) return;
   var current = sel.value;
-  sel.innerHTML = '<option value="">\u2014 Load saved schedule \u2014</option>';
+  sel.innerHTML = '<option value="">Choose a saved schedule\u2026</option>';
   var presets = getPresets();
   Object.keys(presets).sort().forEach(function (name) {
     var opt = document.createElement('option');
@@ -114,13 +114,13 @@ function populatePresetSelect() {
 }
 
 function savePreset() {
-  var name = (window.prompt ? window.prompt('Name for this schedule:') : null);
+  var name = (window.prompt ? window.prompt('Give this schedule a name (for example \u201C1st Sem 2026\u201D):') : null);
   if (!name || !name.trim()) return;
   name = name.trim();
 
   if (window.calendarWidget) calendarWidget.save();
   var current = lsGet(LS_SCHEDULE);
-  if (!current) { alert('No schedule to save yet.'); return; }
+  if (!current) { alert('Your weekly schedule is empty. Add some time blocks first.'); return; }
 
   var presets = getPresets();
   presets[name] = current;
@@ -145,13 +145,13 @@ function loadPreset() {
   var raw = presets[sel.value];
   if (!raw) return;
   var parsed; try { parsed = JSON.parse(raw); } catch (e) { return; }
-  if (window.calendarWidget) calendarWidget.load(parsed);
+  if (window.calendarWidget) calendarWidget.load(parsed, { undoMessage: 'Loaded \u201C' + sel.value + '\u201D.' });
 }
 
 function deletePreset() {
   var sel = document.getElementById('preset-select');
   if (!sel || !sel.value) return;
-  if (!window.confirm('Delete preset "' + sel.value + '"?')) return;
+  if (!window.confirm('Delete the saved schedule \u201C' + sel.value + '\u201D? Your current week on the calendar stays as it is.')) return;
   var presets = getPresets();
   delete presets[sel.value];
   lsSet(LS_PRESETS, JSON.stringify(presets));
@@ -253,7 +253,7 @@ function restoreGenerateForm() {
         var ts  = lastRow.querySelector('.time-slots');
         var btn = lastRow.querySelector('.btn-add-time');
         if (ts)  ts.style.display = 'flex';
-        if (btn) btn.textContent  = '\u2212 Remove time';
+        if (btn) btn.textContent  = '\u2212 Use default times';
       }
     });
   }
@@ -359,41 +359,15 @@ function initSetupPage() {
   }
 }
 
-/* ── Schedule export / import ───────────────────────────────────── */
-function exportSchedule() {
+/* ── Setup page: explicit Save button ───────────────────────────── */
+function saveSetup(btn) {
+  saveProfile();
   if (window.calendarWidget) calendarWidget.save();
-  var sched = lsGet(LS_SCHEDULE);
-  if (!sched) { alert('No schedule saved yet \u2014 draw some blocks first.'); return; }
-  var blob = new Blob([sched], { type: 'application/json' });
-  var url  = URL.createObjectURL(blob);
-  var a    = document.createElement('a');
-  a.href     = url;
-  a.download = 'fdtr-schedule.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-function importSchedule(input) {
-  var file = input.files[0];
-  if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function (e) {
-    try {
-      var parsed = JSON.parse(e.target.result);
-      var days   = ['monday','tuesday','wednesday','thursday','friday'];
-      var valid  = parsed && typeof parsed === 'object' &&
-                   days.some(function (d) { return Array.isArray(parsed[d]); });
-      if (!valid) throw new Error('invalid');
-      lsSet(LS_SCHEDULE, JSON.stringify(parsed));
-      if (window.calendarWidget) calendarWidget.load(parsed);
-    } catch (err) {
-      alert('Invalid file \u2014 please use a schedule exported from this app.');
-    }
-    input.value = '';
-  };
-  reader.readAsText(file);
+  if (!btn) return;
+  var origHTML = btn.innerHTML;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Saved';
+  btn.disabled = true;
+  setTimeout(function () { btn.innerHTML = origHTML; btn.disabled = false; }, 1800);
 }
 
 /* ── Generate page: explicit Save button ────────────────────────── */
@@ -488,7 +462,7 @@ function initGeneratePage() {
 
       var payload = buildPayload();
       if (!payload.profile.faculty_name) {
-        alert('Please fill in your profile on the Setup page first.');
+        alert('Please fill in your name and details on the Setup page first.');
         location.href = 'setup.html';
         return;
       }
@@ -505,7 +479,7 @@ function initGeneratePage() {
         location.href = 'preview.html';
       } catch (err) {
         console.error(err);
-        alert('Preview failed: ' + (err && err.message ? err.message : err));
+        alert('Sorry, the preview couldn\u2019t be made. Please check the dates you entered and try again.\n\nDetails: ' + (err && err.message ? err.message : err));
       }
     });
   }
@@ -517,7 +491,7 @@ function initResetLink() {
   if (!link) return;
   link.addEventListener('click', function (e) {
     e.preventDefault();
-    if (!window.confirm('Clear all saved data (profile, schedule, presets, month inputs)? This cannot be undone.')) {
+    if (!window.confirm('Start over?\n\nThis deletes everything saved in this browser: your details, weekly schedule, saved schedules, monthly entries and past records. It can\u2019t be undone.\n\nTip: use \u201CBackup & restore\u201D first if you might need any of it.')) {
       return;
     }
     try {
