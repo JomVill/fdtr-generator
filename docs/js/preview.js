@@ -15,9 +15,9 @@
     class: "Class", consultation: "Consultation",
     related_activities: "Related Activities", others: "Others (Adm.)"
   };
-  // Folio sheet ("long bond"), 8.5 × 13 in at 96 px/in, with 0.4 in margins —
+  // Folio sheet ("long bond"), 8.5 × 13 in at 96 px/in, with 0.25 in margins —
   // the same page and margins the Excel file is set up to print on.
-  var PAPER_W = 816, PAPER_H = 1248, MARGIN = 38;
+  var PAPER_W = 816, PAPER_H = 1248, MARGIN = 24;      // 0.25 in margins
   var AREA_W = PAPER_W - 2 * MARGIN, AREA_H = PAPER_H - 2 * MARGIN;
 
   // Builds sizer > paper > page inside `host` and renders the record into it

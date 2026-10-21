@@ -383,8 +383,12 @@
   }
 
   function _set_row_heights(ws, days_in_month) {
-    for (var r = 1; r <= 9; r++) ws.getRow(r).height = 14.0;
-    ws.getRow(6).height = 18.0;
+    for (var r = 1; r <= 9; r++) ws.getRow(r).height = 13.0;
+    ws.getRow(6).height = 16.0;
+    // Blank spacer rows: keep a small gap, not a full line
+    ws.getRow(5).height = 5.0;
+    ws.getRow(8).height = 5.0;
+    for (var g = SECTION2_HEADER - 4; g < SECTION2_HEADER; g++) ws.getRow(g).height = 4.0;   // rows 59–62
 
     [COL_HEADER_ROW, SECTION2_HEADER].forEach(function (block) {
       for (var o = 0; o < 4; o++) ws.getRow(block + o).height = 13.0;
@@ -600,7 +604,7 @@
       printArea: "A1:N" + last_row,
       horizontalCentered: true,
       verticalCentered: false,
-      margins: { left: 0.4, right: 0.4, top: 0.4, bottom: 0.4, header: 0.2, footer: 0.2 },
+      margins: { left: 0.25, right: 0.25, top: 0.25, bottom: 0.25, header: 0.1, footer: 0.1 },
     };
 
     // ── Serialize & download ──────────────────────────────────────────────

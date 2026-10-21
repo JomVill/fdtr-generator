@@ -1226,16 +1226,17 @@ main { flex: 1; padding: 2rem 1.5rem 3rem; }
 .fdtr-table {
   border-collapse: collapse;
   font-family: 'Times New Roman', Times, serif;
+  line-height: 1.2;                       /* the site's 1.6 made the header airy */
   min-width: 680px;
   width: 100%;
 }
 
-.inst-line  { text-align:center; padding:2px 4px; font-size:.85rem; }
+.inst-line  { text-align:center; padding:0 4px; font-size:.85rem; }
 .inst-bold  { font-weight:700; }
 .inst-large { font-size:1rem; }
-.inst-title { text-align:center; font-size:1.1rem; font-weight:700; padding:3px 4px; }
-.inst-month { text-align:center; font-size:.85rem; padding:2px 4px; }
-.inst-blank { height:6px; }
+.inst-title { text-align:center; font-size:1.1rem; font-weight:700; padding:1px 4px; }
+.inst-month { text-align:center; font-size:.85rem; padding:0 4px; }
+.inst-blank { height:5px; padding:0 !important; line-height:0; font-size:0; }
 
 .fdtr-bordered td { border:1px solid #000; padding:3px 6px; font-size:.82rem; font-weight:700; }
 .name-dept-cell { text-align:left; }
@@ -1403,9 +1404,9 @@ body.pv-open { overflow: hidden; }
 /* The record inside the 0.4 in margins; JS scales it down to fit one page */
 .pv-page {
   position: absolute;
-  top: 38px;
-  left: 38px;
-  width: 740px;
+  top: 24px;
+  left: 24px;
+  width: 768px;
   transform-origin: top left;
 }
 .pv-paper .fdtr-table { min-width: 0; }
