@@ -471,6 +471,7 @@
     recordHistory: recordHistory,
     getHistory: getHistory,
     openBackup: openDialog,
+    refreshHistory: renderHistory,
     toast: toast,
     downloadBackup: downloadBackup
   };

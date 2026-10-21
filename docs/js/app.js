@@ -746,14 +746,17 @@ function initGeneratePage() {
       }
 
       try {
+        // Preview opens in a window over this page (no page change, nothing to lose)
+        if (window.fdtrPreview) {
+          window.fdtrPreview.open(payload, {
+            onDownloaded: function () { if (window.fdtrData) window.fdtrData.refreshHistory(); }
+          });
+          return;
+        }
+        // Fallback: the stand-alone preview page
         var specialDays = window.buildSpecialDays(payload);
         var preview     = window.generatePreviewData(payload, specialDays);
-        // Stash both — preview page uses `preview` for rendering and `payload`
-        // for the download click (regenerates .xlsx on demand).
-        sessionStorage.setItem(LS_PREVIEW, JSON.stringify({
-          payload: payload,
-          preview: preview,
-        }));
+        sessionStorage.setItem(LS_PREVIEW, JSON.stringify({ payload: payload, preview: preview }));
         location.href = 'preview.html';
       } catch (err) {
         console.error(err);
