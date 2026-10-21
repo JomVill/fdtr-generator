@@ -1513,12 +1513,12 @@ label.data-btn { cursor: pointer; }
   /* Month bar: title, selects and summary on one line */
   .gen-month {
     display: grid;
-    grid-template-columns: auto 300px minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 340px);
+    justify-content: start;
     align-items: center;
-    gap: 1.25rem;
+    gap: 2rem;
   }
   .gen-month .card-title { margin-bottom: 0; }
-  .gen-month .gen-summary { margin-top: 0; }
   .gen-entries { grid-area: entries; }
   .gen-month   { grid-area: month; }
   .gen-actions { grid-area: actions; }
@@ -1532,30 +1532,44 @@ label.data-btn { cursor: pointer; }
 .gen-month-row { display: grid; grid-template-columns: 1.4fr 1fr; gap: .6rem; }
 .gen-month-row label { font-size: .75rem; }
 .gen-month-row .form-group { min-width: 0; }
+/* Summary (in step 3, above Preview): label left, days right */
 .gen-summary {
-  list-style: none;
-  margin: .85rem 0 0;
-  padding: .7rem .85rem;
-  background: var(--gray-50);
   border: 1px solid var(--gray-200);
   border-radius: var(--r);
+  background: var(--gray-50);
+  padding: .6rem .8rem;
   font-size: .82rem;
-  line-height: 1.6;
   color: var(--gray-700);
 }
-.gen-summary { display: flex; flex-wrap: wrap; column-gap: 1rem; row-gap: .1rem; }
-.gen-summary li { position: relative; padding-left: .9rem; }
-.gen-summary li::before {
-  content: '';
-  position: absolute;
-  left: 0; top: .62em;
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: var(--accent);
+.gen-sum-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem;
+  padding-bottom: .45rem;
+  margin-bottom: .3rem;
+  border-bottom: 1px solid var(--gray-200);
+  font-weight: 700;
+  color: var(--gray-900);
 }
-.gen-summary .gen-summary-main { padding-left: 0; color: var(--gray-900); }
-.gen-summary .gen-summary-main::before { display: none; }
-.gen-summary .gen-summary-none { color: var(--gray-500); }
+.gen-sum-head span { font-size: .75rem; font-weight: 500; color: var(--gray-500); }
+.gen-sum-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .18rem 0;
+}
+.gen-sum-row span { display: inline-flex; align-items: center; gap: .45rem; }
+.gen-sum-row strong { font-weight: 600; color: var(--gray-900); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.gen-sum-normal span { color: var(--gray-900); font-weight: 600; }
+.gen-sum-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+/* Same families as the Preview page legend */
+.gen-sum-holidays { background: #facc15; }
+.gen-sum-leave    { background: #60a5fa; }
+.gen-sum-travel   { background: #818cf8; }
+.gen-sum-related  { background: #fb923c; }
+.gen-sum-none { margin-top: .3rem; font-size: .76rem; line-height: 1.45; color: var(--gray-500); }
 
 /* Entries: tabs */
 .gen-entries .card-desc { margin-bottom: .85rem; }

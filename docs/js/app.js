@@ -526,30 +526,35 @@ function genRowCount(type) {
   return c ? c.querySelectorAll('.dynamic-row').length : 0;
 }
 
-// Days that will actually be marked on the FDTR for a tab's rows.
+// Dates a tab's rows will mark on the FDTR, in the chosen month only.
 // Matches how they're recorded: in a range, weekends with nothing scheduled are
-// skipped (except for travel, which marks every day); a single date always counts.
-function genDayCount(type) {
+// skipped (except travel, which marks every day); a single date always counts.
+function genMarkedDates(type, y, m) {
   var c = document.getElementById(type + '-container');
-  if (!c) return 0;
+  if (!c) return [];
   var sched = lsGetJSON(LS_SCHEDULE) || {};
   var keys = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
-  var total = 0;
+  var out = [];
+  function iso(d) {
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
   c.querySelectorAll('.dynamic-row').forEach(function (row) {
     var st = row.querySelector('.range-start'), en = row.querySelector('.range-end');
     if (!st || !st.value) return;
     var a = new Date(st.value + 'T00:00'), b = new Date(((en && en.value) || st.value) + 'T00:00');
-    if (!(b > a)) { total += 1; return; }
+    var single = !(b > a);
+    if (single) b = a;
     for (var d = new Date(a); d <= b; d.setDate(d.getDate() + 1)) {
+      if (d.getFullYear() !== y || d.getMonth() + 1 !== m) continue;
       var wd = d.getDay();
-      if (type !== 'travel' && (wd === 0 || wd === 6)) {
+      if (!single && type !== 'travel' && (wd === 0 || wd === 6)) {
         var blocks = sched[keys[wd]];
         if (!blocks || !blocks.length) continue;
       }
-      total++;
+      out.push(iso(d));
     }
   });
-  return total;
+  return out;
 }
 
 function selectGenTab(type, focus) {
@@ -565,10 +570,11 @@ function selectGenTab(type, focus) {
   });
 }
 
+// Summary above the Preview button: what this month's FDTR will contain
 function updateGenSummary() {
   var m = parseInt((document.getElementById('month') || {}).value, 10);
   var y = parseInt((document.getElementById('year')  || {}).value, 10);
-  var list = document.getElementById('gen-summary');
+  var box = document.getElementById('gen-summary');
 
   GEN_TYPES.forEach(function (t) {
     var badge = document.querySelector('[data-count="' + t + '"]');
@@ -577,28 +583,46 @@ function updateGenSummary() {
     badge.textContent = n;
     badge.classList.toggle('is-zero', n === 0);
   });
-  if (!list || !m || !y) return;
+  if (!box || !m || !y) return;
 
-  var weekdays = 0, days = new Date(y, m, 0).getDate();
-  for (var d = 1; d <= days; d++) {
-    var wd = new Date(y, m - 1, d).getDay();
-    if (wd !== 0 && wd !== 6) weekdays++;
-  }
-  var items = ['<li class="gen-summary-main">' + GEN_MONTHS[m - 1] + ' ' + y + ' has <strong>' +
-               weekdays + ' weekdays</strong>.</li>'];
-  var parts = [
-    ['holidays', 'holiday'],
-    ['leave',    'leave'],
-    ['travel',   'travel'],
-    ['related',  'suspended classes']
+  // Later kinds win when two land on the same day (same order the FDTR builder applies them)
+  var order = [
+    ['holidays', 'Holidays'],
+    ['leave',    'Leave'],
+    ['travel',   'Travel'],
+    ['related',  'Suspended classes']
   ];
-  var any = false;
-  parts.forEach(function (p) {
-    var n = genDayCount(p[0]);
-    if (n) { any = true; items.push('<li>' + n + ' day' + (n === 1 ? '' : 's') + ' of ' + p[1] + '</li>'); }
+  var owner = {};
+  order.forEach(function (o) {
+    genMarkedDates(o[0], y, m).forEach(function (d) { owner[d] = o[0]; });
   });
-  if (!any) items.push('<li class="gen-summary-none">No changes added &mdash; your normal schedule will be used.</li>');
-  list.innerHTML = items.join('');
+
+  var weekdays = 0, normal = 0, days = new Date(y, m, 0).getDate();
+  for (var d = 1; d <= days; d++) {
+    var dt = new Date(y, m - 1, d), wd = dt.getDay();
+    if (wd === 0 || wd === 6) continue;
+    weekdays++;
+    var key = y + '-' + ('0' + m).slice(-2) + '-' + ('0' + d).slice(-2);
+    if (!owner[key]) normal++;
+  }
+  var counts = {};
+  Object.keys(owner).forEach(function (k) { counts[owner[k]] = (counts[owner[k]] || 0) + 1; });
+
+  function dayText(n) { return n + ' day' + (n === 1 ? '' : 's'); }
+  var rows = '<div class="gen-sum-row gen-sum-normal"><span>Normal schedule</span><strong>' + dayText(normal) + '</strong></div>';
+  order.forEach(function (o) {
+    if (counts[o[0]]) {
+      rows += '<div class="gen-sum-row"><span><i class="gen-sum-dot gen-sum-' + o[0] + '"></i>' + o[1] +
+              '</span><strong>' + dayText(counts[o[0]]) + '</strong></div>';
+    }
+  });
+
+  box.innerHTML =
+    '<div class="gen-sum-head">' + GEN_MONTHS[m - 1] + ' ' + y +
+      '<span>' + weekdays + ' weekdays</span></div>' +
+    rows +
+    (Object.keys(counts).length ? '' :
+      '<p class="gen-sum-none">Nothing different added &mdash; every weekday uses your normal schedule.</p>');
 }
 
 function initGenerateLayout() {
