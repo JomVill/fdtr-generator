@@ -371,20 +371,28 @@
   }
 
   // ── Column widths & row heights ──────────────────────────────────────────
+  // Columns are wide enough that the sheet has the same shape as a Folio page
+  // (8 × 12.5 in printable at 0.25 in margins). Fit-to-one-page then fills the
+  // whole width instead of leaving empty side margins.
   function _set_column_widths(ws) {
-    ws.getColumn("A").width = 5.0;
+    ws.getColumn("A").width = 8.0;
     ["B","C","E","F","H","I","K","L"].forEach(function (c) {
-      ws.getColumn(c).width = 9.0;
+      ws.getColumn(c).width = 17.0;
     });
     ["D","G","J","M"].forEach(function (c) {
-      ws.getColumn(c).width = 5.0;
+      ws.getColumn(c).width = 9.5;   // not 9.0: ExcelJS treats exactly 9 as "default" and drops it
     });
-    ws.getColumn("N").width = 6.0;
+    ws.getColumn("N").width = 11.0;
   }
 
+
   function _set_row_heights(ws, days_in_month) {
-    for (var r = 1; r <= 9; r++) ws.getRow(r).height = 14.0;
-    ws.getRow(6).height = 18.0;
+    for (var r = 1; r <= 9; r++) ws.getRow(r).height = 13.0;
+    ws.getRow(6).height = 16.0;
+    // Blank spacer rows: keep a small gap, not a full line
+    ws.getRow(5).height = 5.0;
+    ws.getRow(8).height = 5.0;
+    for (var g = SECTION2_HEADER - 4; g < SECTION2_HEADER; g++) ws.getRow(g).height = 4.0;   // rows 59–62
 
     [COL_HEADER_ROW, SECTION2_HEADER].forEach(function (block) {
       for (var o = 0; o < 4; o++) ws.getRow(block + o).height = 13.0;
@@ -589,11 +597,18 @@
     _set_row_heights(ws, days_in_month);
 
     ws.views = [{ state: "frozen", xSplit: 0, ySplit: 13 }];
+    // Print setup: Folio (8.5 × 13 in, "long bond"), the whole record on exactly one page
+    var last_row = SECTION2_DATA + 16 * 3 + 8;     // footer: certification + signatures (row 123)
     ws.pageSetup = {
-      paperSize: 5,                 // 5 = US Legal
+      paperSize: 14,                // 14 = Folio 8.5 × 13 in
       orientation: "portrait",
       fitToPage: true,
-      printTitlesRow: "1:13",
+      fitToWidth: 1,
+      fitToHeight: 1,
+      printArea: "A1:N" + last_row,
+      horizontalCentered: true,
+      verticalCentered: false,
+      margins: { left: 0.25, right: 0.25, top: 0.25, bottom: 0.25, header: 0.1, footer: 0.1 },
     };
 
     // ── Serialize & download ──────────────────────────────────────────────

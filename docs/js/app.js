@@ -50,12 +50,26 @@ function addRow(type) {
   if (!tmpl || !container) return;
 
   var clone = tmpl.content.cloneNode(true);
-  var today = new Date().toISOString().slice(0, 10);
+  // New dates start inside the chosen month: today if it's in that month, else the 1st
+  var m = parseInt((document.getElementById('month') || {}).value, 10);
+  var y = parseInt((document.getElementById('year')  || {}).value, 10);
+  var now = new Date();
+  var day = (now.getFullYear() === y && now.getMonth() + 1 === m) ? now.getDate() : 1;
+  var start = (m && y) ? y + '-' + ('0' + m).slice(-2) + '-' + ('0' + day).slice(-2)
+                       : now.toISOString().slice(0, 10);
   clone.querySelectorAll("input[type='date']").forEach(function (el) {
-    el.value = today;
+    el.value = start;
   });
   container.appendChild(clone);
-  if (!_restoringForm) serializeGenerateForm();
+  var added = container.lastElementChild;
+  if (added && added.classList.contains('date-range')) setRangeMode(added, false);
+  if (!_restoringForm) {
+    serializeGenerateForm();
+    // Put the cursor in the new row so people can type right away
+    var row = container.lastElementChild;
+    var first = row && row.querySelector('input[type="text"], select, input');
+    if (first) first.focus();
+  }
 }
 
 function removeRow(btn) {
@@ -64,14 +78,65 @@ function removeRow(btn) {
   serializeGenerateForm();
 }
 
+/* ── Date ranges (travel, suspended classes): one day unless expanded ── */
+// While a row is "one day", its hidden end date simply copies the start date,
+// so the saved data and the FDTR generator work exactly as before.
+function setRangeMode(row, many) {
+  var wrap  = row.querySelector('.range-end-wrap');
+  var btn   = row.querySelector('.btn-range');
+  var start = row.querySelector('.range-start');
+  var end   = row.querySelector('.range-end');
+  if (!wrap || !start || !end) return;
+  row.classList.toggle('is-range', many);
+  wrap.hidden = !many;
+  if (btn) btn.hidden = many;
+  start.setAttribute('aria-label', many ? 'First day' : 'Date');
+  end.min = start.value || '';
+  if (!many || !end.value || end.value < start.value) end.value = start.value;
+}
+
+function toggleRange(btn, many) {
+  var row = btn.closest('.dynamic-row');
+  setRangeMode(row, many);
+  serializeGenerateForm();
+  var focusEl = many ? row.querySelector('.range-end') : row.querySelector('.btn-range');
+  if (focusEl) {
+    focusEl.focus();
+    // Open the calendar picker straight away where the browser allows it
+    if (many && focusEl.showPicker) { try { focusEl.showPicker(); } catch (e) {} }
+  }
+}
+
+// Keep each row's end date in step with its start date
+function onRangeInput(e) {
+  var t = e.target;
+  if (!t.classList) return;
+  var row = t.closest('.dynamic-row');
+  if (t.classList.contains('range-start')) {
+    setRangeMode(row, row.classList.contains('is-range'));
+  } else if (t.classList.contains('range-end') && e.type === 'change') {
+    // A last day before the first day isn't possible — snap it back
+    var start = row.querySelector('.range-start');
+    if (t.value && start.value && t.value < start.value) t.value = start.value;
+  }
+}
+
+function syncAllRanges() {
+  document.querySelectorAll('.dynamic-row.date-range').forEach(function (row) {
+    var s = row.querySelector('.range-start'), e = row.querySelector('.range-end');
+    setRangeMode(row, !!(e && e.value && s && e.value !== s.value));
+  });
+}
+
 /* ── Time toggle on Related Activities rows ─────────────────────── */
 function toggleTime(btn) {
   var row   = btn.closest('.dynamic-row');
   var slots = row.querySelector('.time-slots');
   if (!slots) return;
-  var isVisible = slots.style.display !== 'none';
+  // Read what's actually shown — the inline style is empty until the first toggle
+  var isVisible = getComputedStyle(slots).display !== 'none';
   slots.style.display = isVisible ? 'none' : 'flex';
-  btn.textContent = isVisible ? '+ Add time' : '\u2212 Remove time';
+  btn.textContent = isVisible ? '+ Set times' : '\u2212 Use default times';
   serializeGenerateForm();
 }
 
@@ -103,7 +168,7 @@ function populatePresetSelect() {
   var sel = document.getElementById('preset-select');
   if (!sel) return;
   var current = sel.value;
-  sel.innerHTML = '<option value="">\u2014 Load saved schedule \u2014</option>';
+  sel.innerHTML = '<option value="">Choose a saved schedule\u2026</option>';
   var presets = getPresets();
   Object.keys(presets).sort().forEach(function (name) {
     var opt = document.createElement('option');
@@ -114,13 +179,13 @@ function populatePresetSelect() {
 }
 
 function savePreset() {
-  var name = (window.prompt ? window.prompt('Name for this schedule:') : null);
+  var name = (window.prompt ? window.prompt('Give this schedule a name (for example \u201C1st Sem 2026\u201D):') : null);
   if (!name || !name.trim()) return;
   name = name.trim();
 
   if (window.calendarWidget) calendarWidget.save();
   var current = lsGet(LS_SCHEDULE);
-  if (!current) { alert('No schedule to save yet.'); return; }
+  if (!current) { alert('Your weekly schedule is empty. Add some time blocks first.'); return; }
 
   var presets = getPresets();
   presets[name] = current;
@@ -145,13 +210,13 @@ function loadPreset() {
   var raw = presets[sel.value];
   if (!raw) return;
   var parsed; try { parsed = JSON.parse(raw); } catch (e) { return; }
-  if (window.calendarWidget) calendarWidget.load(parsed);
+  if (window.calendarWidget) calendarWidget.load(parsed, { undoMessage: 'Loaded \u201C' + sel.value + '\u201D.' });
 }
 
 function deletePreset() {
   var sel = document.getElementById('preset-select');
   if (!sel || !sel.value) return;
-  if (!window.confirm('Delete preset "' + sel.value + '"?')) return;
+  if (!window.confirm('Delete the saved schedule \u201C' + sel.value + '\u201D? Your current week on the calendar stays as it is.')) return;
   var presets = getPresets();
   delete presets[sel.value];
   lsSet(LS_PRESETS, JSON.stringify(presets));
@@ -208,15 +273,15 @@ function serializeGenerateForm() {
         obj[name] = el ? el.value : '';
       });
       var ts = row.querySelector('.time-slots');
-      if (ts) obj['_timeVisible'] = ts.style.display !== 'none';
+      if (ts) obj['_timeVisible'] = getComputedStyle(ts).display !== 'none';
       rows.push(obj);
     });
     return rows;
   }
 
   var data = {
-    holidays: getRows('holidays-container', ['holiday_date[]','holiday_label[]']),
-    leave:    getRows('leave-container',    ['leave_date[]','leave_type[]']),
+    holidays: getRows('holidays-container', ['holiday_date[]','holiday_end[]','holiday_label[]']),
+    leave:    getRows('leave-container',    ['leave_date[]','leave_end[]','leave_type[]']),
     travel:   getRows('travel-container',   ['travel_start[]','travel_end[]','travel_ta[]']),
     related:  getRows('related-container',  ['related_start[]','related_end[]','related_time_in[]','related_time_out[]']),
   };
@@ -253,18 +318,19 @@ function restoreGenerateForm() {
         var ts  = lastRow.querySelector('.time-slots');
         var btn = lastRow.querySelector('.btn-add-time');
         if (ts)  ts.style.display = 'flex';
-        if (btn) btn.textContent  = '\u2212 Remove time';
+        if (btn) btn.textContent  = '\u2212 Use default times';
       }
     });
   }
 
   _restoringForm = true;
-  restoreRows('holidays', data.holidays, ['holiday_date[]','holiday_label[]']);
-  restoreRows('leave',    data.leave,    ['leave_date[]','leave_type[]']);
+  restoreRows('holidays', data.holidays, ['holiday_date[]','holiday_end[]','holiday_label[]']);
+  restoreRows('leave',    data.leave,    ['leave_date[]','leave_end[]','leave_type[]']);
   restoreRows('travel',   data.travel,   ['travel_start[]','travel_end[]','travel_ta[]']);
   restoreRows('related',  data.related,  ['related_start[]','related_end[]','related_time_in[]','related_time_out[]']);
   _restoringForm = false;
 
+  syncAllRanges();
   serializeGenerateForm();
 }
 
@@ -359,46 +425,10 @@ function initSetupPage() {
   }
 }
 
-/* ── Schedule export / import ───────────────────────────────────── */
-function exportSchedule() {
+/* ── Setup page: explicit Save button ───────────────────────────── */
+function saveSetup(btn) {
+  saveProfile();
   if (window.calendarWidget) calendarWidget.save();
-  var sched = lsGet(LS_SCHEDULE);
-  if (!sched) { alert('No schedule saved yet \u2014 draw some blocks first.'); return; }
-  var blob = new Blob([sched], { type: 'application/json' });
-  var url  = URL.createObjectURL(blob);
-  var a    = document.createElement('a');
-  a.href     = url;
-  a.download = 'fdtr-schedule.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-function importSchedule(input) {
-  var file = input.files[0];
-  if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function (e) {
-    try {
-      var parsed = JSON.parse(e.target.result);
-      var days   = ['monday','tuesday','wednesday','thursday','friday'];
-      var valid  = parsed && typeof parsed === 'object' &&
-                   days.some(function (d) { return Array.isArray(parsed[d]); });
-      if (!valid) throw new Error('invalid');
-      lsSet(LS_SCHEDULE, JSON.stringify(parsed));
-      if (window.calendarWidget) calendarWidget.load(parsed);
-    } catch (err) {
-      alert('Invalid file \u2014 please use a schedule exported from this app.');
-    }
-    input.value = '';
-  };
-  reader.readAsText(file);
-}
-
-/* ── Generate page: explicit Save button ────────────────────────── */
-function saveStep2(btn) {
-  serializeGenerateForm();
   if (!btn) return;
   var origHTML = btn.innerHTML;
   btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Saved';
@@ -426,6 +456,41 @@ function buildPayload() {
     return out;
   }
 
+  // Holiday and leave rows can cover several days. The FDTR builder takes one
+  // date per entry, so a range becomes one entry per day. Weekends with no
+  // scheduled blocks are skipped (same rule as suspended classes) so they stay
+  // plain SAT/SUN; a single chosen date is always kept as-is.
+  function expandDays(startName, endName, valueName) {
+    var starts = collectList(startName), ends = collectList(endName), vals = collectList(valueName);
+    var dates = [], values = [];
+    function iso(dt) {
+      return dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2) + '-' + ('0' + dt.getDate()).slice(-2);
+    }
+    function parse(str) {
+      var p = (str || '').split('-');
+      return p.length === 3 ? new Date(+p[0], +p[1] - 1, +p[2]) : null;
+    }
+    var dayKeys = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+    starts.forEach(function (st, i) {
+      var a = parse(st), b = parse(ends[i]) || a;
+      if (!a) { dates.push(st); values.push(vals[i]); return; }   // keep as-is (blank, etc.)
+      if (b < a) b = a;
+      if (b.getTime() === a.getTime()) { dates.push(st); values.push(vals[i]); return; }
+      for (var d = new Date(a); d <= b; d.setDate(d.getDate() + 1)) {
+        var wd = d.getDay();
+        if (wd === 0 || wd === 6) {
+          var blocks = schedule[dayKeys[wd]];
+          if (!blocks || !blocks.length) continue;
+        }
+        dates.push(iso(d));
+        values.push(vals[i]);
+      }
+    });
+    return { dates: dates, values: values };
+  }
+  var hol   = expandDays('holiday_date[]', 'holiday_end[]', 'holiday_label[]');
+  var leave = expandDays('leave_date[]',   'leave_end[]',   'leave_type[]');
+
   return {
     profile: {
       faculty_name: (profile.faculty_name || '').trim().toUpperCase(),
@@ -436,10 +501,10 @@ function buildPayload() {
     month: m,
     year:  y,
     schedule: schedule,
-    holiday_dates:  collectList('holiday_date[]'),
-    holiday_labels: collectList('holiday_label[]'),
-    leave_dates:    collectList('leave_date[]'),
-    leave_types:    collectList('leave_type[]'),
+    holiday_dates:  hol.dates,
+    holiday_labels: hol.values,
+    leave_dates:    leave.dates,
+    leave_types:    leave.values,
     travel_starts:  collectList('travel_start[]'),
     travel_ends:    collectList('travel_end[]'),
     travel_tas:     collectList('travel_ta[]'),
@@ -451,6 +516,188 @@ function buildPayload() {
 }
 
 /* ── Generate page init ─────────────────────────────────────────── */
+/* ── Generate page: tabs, counts, month summary, saved status ───── */
+var GEN_TYPES = ['holidays', 'leave', 'travel', 'related'];
+var GEN_MONTHS = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+
+function genRowCount(type) {
+  var c = document.getElementById(type + '-container');
+  return c ? c.querySelectorAll('.dynamic-row').length : 0;
+}
+
+// Dates a tab's rows will mark on the FDTR, in the chosen month only.
+// Matches how they're recorded: in a range, weekends with nothing scheduled are
+// skipped (except travel, which marks every day); a single date always counts.
+function genMarkedDates(type, y, m) {
+  var c = document.getElementById(type + '-container');
+  if (!c) return [];
+  var sched = lsGetJSON(LS_SCHEDULE) || {};
+  var keys = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  var out = [];
+  function iso(d) {
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+  }
+  c.querySelectorAll('.dynamic-row').forEach(function (row) {
+    var st = row.querySelector('.range-start'), en = row.querySelector('.range-end');
+    if (!st || !st.value) return;
+    var a = new Date(st.value + 'T00:00'), b = new Date(((en && en.value) || st.value) + 'T00:00');
+    var single = !(b > a);
+    if (single) b = a;
+    for (var d = new Date(a); d <= b; d.setDate(d.getDate() + 1)) {
+      if (d.getFullYear() !== y || d.getMonth() + 1 !== m) continue;
+      var wd = d.getDay();
+      if (!single && type !== 'travel' && (wd === 0 || wd === 6)) {
+        var blocks = sched[keys[wd]];
+        if (!blocks || !blocks.length) continue;
+      }
+      out.push(iso(d));
+    }
+  });
+  return out;
+}
+
+function selectGenTab(type, focus) {
+  GEN_TYPES.forEach(function (t) {
+    var tab = document.getElementById('tab-' + t);
+    var panel = document.getElementById('panel-' + t);
+    if (!tab || !panel) return;
+    var on = t === type;
+    tab.setAttribute('aria-selected', on ? 'true' : 'false');
+    tab.tabIndex = on ? 0 : -1;
+    panel.hidden = !on;
+    if (on && focus) tab.focus();
+  });
+}
+
+// Summary above the Preview button: what this month's FDTR will contain
+function updateGenSummary() {
+  var m = parseInt((document.getElementById('month') || {}).value, 10);
+  var y = parseInt((document.getElementById('year')  || {}).value, 10);
+  var box = document.getElementById('gen-summary');
+
+  var totalRows = 0;
+  GEN_TYPES.forEach(function (t) {
+    var badge = document.querySelector('[data-count="' + t + '"]');
+    var n = genRowCount(t);
+    totalRows += n;
+    if (!badge) return;
+    badge.textContent = n;
+    badge.classList.toggle('is-zero', n === 0);
+  });
+  var clearBtn = document.getElementById('btn-clear-month');
+  if (clearBtn) clearBtn.disabled = totalRows === 0;
+  if (!box || !m || !y) return;
+
+  // Later kinds win when two land on the same day (same order the FDTR builder applies them)
+  var order = [
+    ['holidays', 'Holidays'],
+    ['leave',    'Leave'],
+    ['travel',   'Travel'],
+    ['related',  'Suspended classes']
+  ];
+  var owner = {};
+  order.forEach(function (o) {
+    genMarkedDates(o[0], y, m).forEach(function (d) { owner[d] = o[0]; });
+  });
+
+  var weekdays = 0, normal = 0, days = new Date(y, m, 0).getDate();
+  for (var d = 1; d <= days; d++) {
+    var dt = new Date(y, m - 1, d), wd = dt.getDay();
+    if (wd === 0 || wd === 6) continue;
+    weekdays++;
+    var key = y + '-' + ('0' + m).slice(-2) + '-' + ('0' + d).slice(-2);
+    if (!owner[key]) normal++;
+  }
+  var counts = {};
+  Object.keys(owner).forEach(function (k) { counts[owner[k]] = (counts[owner[k]] || 0) + 1; });
+
+  function dayText(n) { return n + ' day' + (n === 1 ? '' : 's'); }
+  var rows = '<div class="gen-sum-row gen-sum-normal"><span>Normal schedule</span><strong>' + dayText(normal) + '</strong></div>';
+  order.forEach(function (o) {
+    if (counts[o[0]]) {
+      rows += '<div class="gen-sum-row"><span><i class="gen-sum-dot gen-sum-' + o[0] + '"></i>' + o[1] +
+              '</span><strong>' + dayText(counts[o[0]]) + '</strong></div>';
+    }
+  });
+
+  box.innerHTML =
+    '<div class="gen-sum-head">' + GEN_MONTHS[m - 1] + ' ' + y +
+      '<span>' + weekdays + ' weekdays</span></div>' +
+    rows +
+    (Object.keys(counts).length ? '' :
+      '<p class="gen-sum-none">Nothing different added &mdash; every weekday uses your normal schedule.</p>');
+}
+
+// "Clear all": empty every tab for the chosen month, with Undo
+function clearMonthEntries() {
+  serializeGenerateForm();
+  var key = _activeMonthKey || getMonthKey();
+  var before = lsGet(key);
+  GEN_TYPES.forEach(function (t) {
+    var c = document.getElementById(t + '-container');
+    if (c) c.innerHTML = '';
+  });
+  serializeGenerateForm();
+  var m = document.getElementById('month'), y = document.getElementById('year');
+  var label = m ? m.options[m.selectedIndex].text + (y ? ' ' + y.value : '') : 'this month';
+  var undo = function () {
+    if (before != null) lsSet(key, before);
+    restoreGenerateForm();
+  };
+  if (window.fdtrData && fdtrData.toast) fdtrData.toast('Cleared everything for ' + label + '.', undo);
+}
+
+function initGenerateLayout() {
+  var clearBtn = document.getElementById('btn-clear-month');
+  if (clearBtn) clearBtn.addEventListener('click', clearMonthEntries);
+
+  var tablist = document.querySelector('.gen-tabs');
+  if (tablist) {
+    tablist.addEventListener('click', function (e) {
+      var tab = e.target.closest('.gen-tab');
+      if (tab) selectGenTab(tab.getAttribute('data-type'));
+    });
+    // Arrow keys move between tabs (standard tab behaviour)
+    tablist.addEventListener('keydown', function (e) {
+      var i = GEN_TYPES.indexOf(document.activeElement.getAttribute('data-type'));
+      if (i < 0) return;
+      var next = null;
+      if (e.key === 'ArrowRight') next = GEN_TYPES[(i + 1) % GEN_TYPES.length];
+      else if (e.key === 'ArrowLeft') next = GEN_TYPES[(i + GEN_TYPES.length - 1) % GEN_TYPES.length];
+      else if (e.key === 'Home') next = GEN_TYPES[0];
+      else if (e.key === 'End') next = GEN_TYPES[GEN_TYPES.length - 1];
+      if (next) { e.preventDefault(); selectGenTab(next, true); }
+    });
+  }
+
+  // Counts + summary follow rows being added/removed (including month switches)
+  var obs = new MutationObserver(updateGenSummary);
+  GEN_TYPES.forEach(function (t) {
+    var c = document.getElementById(t + '-container');
+    if (c) obs.observe(c, { childList: true });
+  });
+
+  // Open the first tab that already has entries
+  var firstFilled = GEN_TYPES.filter(function (t) { return genRowCount(t) > 0; })[0];
+  selectGenTab(firstFilled || 'holidays');
+  updateGenSummary();
+
+  // "Saved automatically" blinks after each change so people can see it worked
+  var saved = document.getElementById('gen-saved');
+  var form = document.getElementById('generate-form');
+  var t = null;
+  if (saved && form) {
+    form.addEventListener('change', updateGenSummary);
+    form.addEventListener('input', function () {
+      updateGenSummary();
+      saved.classList.add('is-flash');
+      clearTimeout(t);
+      t = setTimeout(function () { saved.classList.remove('is-flash'); }, 1200);
+    });
+  }
+}
+
 function initGeneratePage() {
   // Require profile; else bounce to setup
   var p = lsGetJSON(LS_PROFILE);
@@ -476,9 +723,14 @@ function initGeneratePage() {
   }
   if (m) m.addEventListener('change', onMonthYearChange);
   if (y) y.addEventListener('change', onMonthYearChange);
+  initGenerateLayout();
+  if (m) m.addEventListener('change', updateGenSummary);
+  if (y) y.addEventListener('change', updateGenSummary);
 
   var form = document.getElementById('generate-form');
   if (form) {
+    form.addEventListener('input',  onRangeInput);
+    form.addEventListener('change', onRangeInput);
     form.addEventListener('change', serializeGenerateForm);
     form.addEventListener('input',  serializeGenerateForm);
 
@@ -488,24 +740,27 @@ function initGeneratePage() {
 
       var payload = buildPayload();
       if (!payload.profile.faculty_name) {
-        alert('Please fill in your profile on the Setup page first.');
+        alert('Please fill in your name and details on the Setup page first.');
         location.href = 'setup.html';
         return;
       }
 
       try {
+        // Preview opens in a window over this page (no page change, nothing to lose)
+        if (window.fdtrPreview) {
+          window.fdtrPreview.open(payload, {
+            onDownloaded: function () { if (window.fdtrData) window.fdtrData.refreshHistory(); }
+          });
+          return;
+        }
+        // Fallback: the stand-alone preview page
         var specialDays = window.buildSpecialDays(payload);
         var preview     = window.generatePreviewData(payload, specialDays);
-        // Stash both — preview page uses `preview` for rendering and `payload`
-        // for the download click (regenerates .xlsx on demand).
-        sessionStorage.setItem(LS_PREVIEW, JSON.stringify({
-          payload: payload,
-          preview: preview,
-        }));
+        sessionStorage.setItem(LS_PREVIEW, JSON.stringify({ payload: payload, preview: preview }));
         location.href = 'preview.html';
       } catch (err) {
         console.error(err);
-        alert('Preview failed: ' + (err && err.message ? err.message : err));
+        alert('Sorry, the preview couldn\u2019t be made. Please check the dates you entered and try again.\n\nDetails: ' + (err && err.message ? err.message : err));
       }
     });
   }
@@ -517,7 +772,7 @@ function initResetLink() {
   if (!link) return;
   link.addEventListener('click', function (e) {
     e.preventDefault();
-    if (!window.confirm('Clear all saved data (profile, schedule, presets, month inputs)? This cannot be undone.')) {
+    if (!window.confirm('Start over?\n\nThis deletes everything saved in this browser: your details, weekly schedule, saved schedules, monthly entries and past records. It can\u2019t be undone.\n\nTip: use \u201CBackup & restore\u201D first if you might need any of it.')) {
       return;
     }
     try {

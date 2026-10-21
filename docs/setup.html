@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/style.css?v=20261021x"/>
 </head>
 <body>
 
@@ -49,11 +49,22 @@
 <div class="page-container">
 
   <div class="page-header">
-    <div class="step-badge">Step 1 of 2</div>
-    <h1>Faculty Info &amp; Weekly Schedule</h1>
+    <div class="page-header-top">
+      <div class="step-badge">Step 1 of 2</div>
+      <button type="button" class="tour-replay" data-tour-start>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        Take the tour
+      </button>
+    </div>
+    <h1>Your details &amp; weekly schedule</h1>
     <p class="page-desc">
-      Fill in your profile once — it will be remembered in this browser.
-      Draw your weekly schedule on the calendar below by <strong>clicking and dragging</strong>.
+      You only need to do this once. Everything you enter is saved in this browser,
+      so it will still be here next time.
     </p>
   </div>
 
@@ -71,18 +82,18 @@
             <circle cx="12" cy="7" r="4"/>
           </svg>
         </span>
-        Faculty Information
+        Your details
       </h2>
       <div class="form-row">
         <div class="form-group">
-          <label for="faculty_name">Full Name (with suffix / degree)</label>
+          <label for="faculty_name">Your full name (with degree)</label>
           <input type="text" id="faculty_name" name="faculty_name"
                  placeholder="e.g. JUAN DELA CRUZ, MSc."
                  required class="form-input"/>
-          <span class="form-hint">Will appear exactly as typed on the FDTR</span>
+          <span class="form-hint">Printed on your FDTR exactly as you type it</span>
         </div>
         <div class="form-group">
-          <label for="designation">Designation / Position</label>
+          <label for="designation">Position</label>
           <input type="text" id="designation" name="designation"
                  placeholder="e.g. Assistant Professor I"
                  required class="form-input"/>
@@ -90,16 +101,17 @@
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label for="department">Department / Unit</label>
+          <label for="department">Department or unit</label>
           <input type="text" id="department" name="department"
                  placeholder="e.g. COMPUTER APPLICATIONS"
                  required class="form-input"/>
         </div>
         <div class="form-group">
-          <label for="dept_head">Head of Department / Unit (with degree)</label>
+          <label for="dept_head">Your department head (with degree)</label>
           <input type="text" id="dept_head" name="dept_head"
                  placeholder="e.g. MARIA SANTOS, PhD."
                  required class="form-input"/>
+          <span class="form-hint">The person who signs your FDTR</span>
         </div>
       </div>
     </section>
@@ -120,10 +132,10 @@
       </h2>
 
       <div class="callout">
-        <strong>Where to get your class schedule:</strong>
-        Log in to the MSU-IIT portal at
+        <strong>First, open your class schedule.</strong>
+        Log in to the
         <a href="https://myiit.msuiit.edu.ph/my/v2/index.php" target="_blank" rel="noopener">
-          myiit.msuiit.edu.ph
+          MSU-IIT portal
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
                style="display:inline;vertical-align:middle;margin-left:1px" aria-hidden="true">
@@ -131,47 +143,28 @@
             <polyline points="15 3 21 3 21 9"/>
             <line x1="10" y1="14" x2="21" y2="3"/>
           </svg>
-        </a>.
-        Then go to <strong>Academics &gt; Class Schedule</strong>.
-        Review your assigned subjects, days, and times, then manually encode them below by placing blocks under the corresponding day columns.
-        Add your consultation hours manually. Include any administrative or research load as additional blocks under the <em>Others</em> category.
+          <span class="visually-hidden">(opens in a new tab)</span>
+        </a>
+        and go to <strong>Academics &rsaquo; Class Schedule</strong>. Copy each class onto the
+        calendar below, then add your consultation hours and any other work (admin, research)
+        as <em>Others</em>.
       </div>
 
-      <p class="cal-hint">
-        <strong>Click and drag</strong> on a day column to create a time block.
-        <strong>Click a block</strong> to set its category and label.
-        <strong>Drag the bottom edge</strong> to resize.
-        Your schedule is saved automatically to this browser.
-      </p>
+      <ol class="cal-howto">
+        <li><strong>Add a time block:</strong> double-click an empty spot, or click and drag down.
+          <span class="cal-howto-touch">On a phone or tablet: double-tap, or press and hold, then drag.</span></li>
+        <li><strong>Edit it:</strong> click the block to choose what it is (Class, Consultation&hellip;),
+          add a name like &ldquo;CS 101&rdquo;, and pick other days with the same time.</li>
+        <li><strong>Move or resize:</strong> drag the block, or drag its bottom edge.</li>
+      </ol>
 
       <div class="preset-bar">
-        <label for="preset-select">Saved schedules:</label>
+        <label for="preset-select">Saved schedules</label>
         <select id="preset-select" class="preset-select"></select>
-        <button type="button" class="btn-sm" id="btn-load-preset">Load</button>
-        <button type="button" class="btn-sm" id="btn-save-preset">Save as&hellip;</button>
+        <button type="button" class="btn-sm" id="btn-load-preset">Open</button>
+        <button type="button" class="btn-sm" id="btn-save-preset">Save this week as&hellip;</button>
         <button type="button" class="btn-sm btn-sm-danger" id="btn-del-preset">Delete</button>
-
-        <span class="preset-bar-sep"></span>
-
-        <button type="button" class="btn-sm" id="btn-export-schedule" onclick="exportSchedule()">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          Export
-        </button>
-        <label class="btn-sm" style="cursor:pointer" title="Import schedule from file">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-          Import
-          <input type="file" accept=".json" style="display:none" onchange="importSchedule(this)">
-        </label>
+        <span class="preset-bar-hint">Handy for keeping one schedule per semester.</span>
       </div>
 
       <div id="cal-container"></div>
@@ -179,8 +172,7 @@
 
     <section class="card card-action">
       <div class="action-btn-row">
-        <button type="button" class="btn btn-secondary btn-lg" id="save-btn"
-                onclick="saveProfile(); if(window.calendarWidget) calendarWidget.save(); this.textContent='Saved'; setTimeout(() =&gt; this.textContent='Save', 1800)">
+        <button type="button" class="btn btn-secondary btn-lg" id="save-btn" onclick="saveSetup(this)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
@@ -190,7 +182,7 @@
           Save
         </button>
         <button type="submit" class="btn btn-primary btn-lg btn-generate">
-          Continue
+          Next: choose a month
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <line x1="5" y1="12" x2="19" y2="12"/>
@@ -199,7 +191,8 @@
         </button>
       </div>
       <p class="form-hint center-hint">
-        Profile &amp; schedule are saved in your browser — they will be here next time.
+        Your details and schedule save automatically in this browser.
+        To use them on another computer, use <strong>Backup &amp; restore</strong> at the top.
       </p>
     </section>
 
@@ -227,9 +220,11 @@
   </p>
 </footer>
 
-<script src="js/calendar.js"></script>
-<script src="js/nav.js"></script>
-<script src="js/app.js"></script>
+<script src="js/calendar.js?v=20261021x"></script>
+<script src="js/nav.js?v=20261021x"></script>
+<script src="js/app.js?v=20261021x"></script>
+<script src="js/data.js?v=20261021x"></script>
+<script src="js/tour.js?v=20261021x"></script>
 
 </body>
 </html>
