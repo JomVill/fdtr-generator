@@ -42,21 +42,38 @@
 
   // Both pages use the full printable width at natural size (like the Excel file's
   // columns). If either page is taller than the printable height, both shrink by the
-  // same amount so they stay consistent.
+  // same amount so they stay consistent. If a page is shorter, its day rows grow so
+  // the record fills the whole printable height, leaving the same margin on every side.
   function fitSheet(pages) {
     pages.forEach(function (page) {
       page.style.transform = 'none';
       page.style.left = MARGIN + 'px';
       page.style.width = AREA_W + 'px';
+      page.querySelectorAll('tr.day-row > td').forEach(function (td) { td.style.height = ''; });
     });
     var nh = 0;
     pages.forEach(function (page) { nh = Math.max(nh, page.scrollHeight); });
     var sc = Math.min(1, AREA_H / nh);
+    // Fill the printable height at this scale (in unscaled px), so shorter pages grow to match
+    pages.forEach(function (page) { stretchDays(page, Math.floor(AREA_H / sc) - page.scrollHeight); });
     pages.forEach(function (page) {
       page.style.transform = 'scale(' + sc + ')';
       page.style.left = (MARGIN + (AREA_W - AREA_W * sc) / 2) + 'px';
     });
     return sc;
+  }
+
+  // Spreads `extra` px evenly over the day blocks of one page. A regular day is three
+  // sub-rows; a weekend or holiday/leave row is one row drawn at the same three-line height.
+  function stretchDays(page, extra) {
+    var rows = Array.prototype.slice.call(page.querySelectorAll('tr.day-row'));
+    if (extra <= 0 || !rows.length) return;
+    var units = rows.reduce(function (n, tr) { return n + (tr.classList.contains('day-special') ? 3 : 1); }, 0);
+    var perUnit = extra / units;
+    rows.forEach(function (tr) {
+      var h = tr.offsetHeight + perUnit * (tr.classList.contains('day-special') ? 3 : 1);
+      tr.querySelectorAll(':scope > td').forEach(function (td) { td.style.height = h + 'px'; });
+    });
   }
 
   // Scales the sheets on screen (or for PDF at z = 1); the sizer reserves the scaled size for scrolling
@@ -133,7 +150,7 @@
         else if (row.total != null && row.total !== "") totalDisplay = String(row.total);
 
         html +=
-          '<tr class="day-row day-' + escHtml(row.day_class) + '">' +
+          '<tr class="day-row day-special day-' + escHtml(row.day_class) + '">' +
             '<td class="td-day">' + escHtml(row.day) + '</td>' +
             '<td colspan="12" class="td-special-label">' + escHtml(row.label) + '</td>' +
             '<td class="td-total">' + totalDisplay + '</td>' +
