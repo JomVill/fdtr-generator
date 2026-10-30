@@ -1503,7 +1503,7 @@ body.pv-open { overflow: hidden; }
 .pv-dl-row { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
 .pv-dl-row .btn { min-height: 46px; font-size: .92rem; }
 /* Off-screen sheet the PDF is drawn from (never shown) */
-.pv-pdf-host { position: fixed; left: -10000px; top: 0; width: 816px; height: 1248px; overflow: hidden; background: #fff; }
+.pv-pdf-host { position: fixed; left: -10000px; top: 0; width: 816px; background: #fff; }
 .pv-pdf-host .pv-paper { box-shadow: none; }
 .pv-download { min-height: 46px; font-size: .95rem; }
 .pv-actions-row { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
@@ -1572,15 +1572,18 @@ body.pv-open { overflow: hidden; }
   .pv-canvas, #fdtr-doc, .fdtr-scroll { overflow: visible !important; padding: 0 !important; margin: 0 !important;
                                         background: none !important; border: 0 !important; box-shadow: none !important; }
   .pv-sizer { width: auto !important; height: auto !important; margin: 0 !important; }
+  /* Two sheets, one after the other: front (days 1–15) then back (days 16–end + signatures) */
   .pv-paper {
-    position: relative;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
     transform: none !important;
     width: 8.5in;
-    height: 12.95in;                 /* a hair under 13 in so rounding never spills onto a 2nd page */
+    height: 12.95in;                 /* a hair under 13 in so rounding never spills onto a 3rd page */
     box-shadow: none;
-    break-after: avoid;
     break-inside: avoid;
   }
+  .pv-paper + .pv-paper { break-before: page; }
   .day-row, .day-row td, .fdtr-colheader th, .th-cat-related { background: #fff !important; }
   main, .page-container, .preview-page { padding: 0 !important; margin: 0 !important; max-width: none !important; }
 }

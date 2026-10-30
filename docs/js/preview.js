@@ -17,44 +17,57 @@
   };
   // Folio sheet ("long bond"), 8.5 × 13 in at 96 px/in, with 0.25 in margins —
   // the same page and margins the Excel file is set up to print on.
+  // Printed back to back: front = header + days 1–15, back = days 16–end + signatures.
   var PAPER_W = 816, PAPER_H = 1248, MARGIN = 24;      // 0.25 in margins
   var AREA_W = PAPER_W - 2 * MARGIN, AREA_H = PAPER_H - 2 * MARGIN;
+  var GAP = 24;                                         // space between the two sheets on screen
+  var PARTS = ['front', 'back'];
 
-  // Builds sizer > paper > page inside `host` and renders the record into it
+  // Builds sizer > [paper: front, paper: back] inside `host` and renders the record into them
   function mountSheet(host, preview) {
-    host.innerHTML = '<div class="pv-sizer"><div class="pv-paper"><div class="pv-page"></div></div></div>';
-    var paper = host.querySelector('.pv-paper');
-    renderDoc(paper.querySelector('.pv-page'), preview);
-    return { sizer: host.querySelector('.pv-sizer'), paper: paper, scale: fitPage(paper) };
+    host.innerHTML =
+      '<div class="pv-sizer">' +
+        PARTS.map(function (part) {
+          return '<div class="pv-paper pv-paper-' + part + '"><div class="pv-page"></div></div>';
+        }).join('') +
+      '</div>';
+    var sizer = host.querySelector('.pv-sizer');
+    var papers = Array.prototype.slice.call(sizer.querySelectorAll('.pv-paper'));
+    papers.forEach(function (paper, i) {
+      renderPage(paper.querySelector('.pv-page'), preview, PARTS[i]);
+    });
+    var pages = papers.map(function (p) { return p.querySelector('.pv-page'); });
+    return { sizer: sizer, papers: papers, pages: pages, scale: fitSheet(pages) };
   }
 
-  // Fits the record onto one Folio page with no empty side margins: first widen it
-  // until its shape matches the printable area (it's much taller than wide), then
-  // scale it down to fit — the same thing the Excel file's wider columns achieve.
-  function fitPage(paper) {
-    var page = paper.querySelector('.pv-page');
-    var ratio = AREA_W / AREA_H;
-    page.style.transform = 'none';
-    page.style.left = MARGIN + 'px';
-    page.style.width = AREA_W + 'px';
-    for (var i = 0; i < 3; i++) {                  // wider → less wrapping → a bit shorter; settle
-      var want = Math.max(AREA_W, Math.round(page.scrollHeight * ratio));
-      if (Math.abs(want - page.offsetWidth) < 2) break;
-      page.style.width = want + 'px';
-    }
-    var nw = page.scrollWidth, nh = page.scrollHeight;
-    var sc = Math.min(1, AREA_W / nw, AREA_H / nh);
-    page.style.transform = 'scale(' + sc + ')';
-    page.style.left = (MARGIN + (AREA_W - nw * sc) / 2) + 'px';
+  // Both pages use the full printable width at natural size (like the Excel file's
+  // columns). If either page is taller than the printable height, both shrink by the
+  // same amount so they stay consistent.
+  function fitSheet(pages) {
+    pages.forEach(function (page) {
+      page.style.transform = 'none';
+      page.style.left = MARGIN + 'px';
+      page.style.width = AREA_W + 'px';
+    });
+    var nh = 0;
+    pages.forEach(function (page) { nh = Math.max(nh, page.scrollHeight); });
+    var sc = Math.min(1, AREA_H / nh);
+    pages.forEach(function (page) {
+      page.style.transform = 'scale(' + sc + ')';
+      page.style.left = (MARGIN + (AREA_W - AREA_W * sc) / 2) + 'px';
+    });
     return sc;
   }
 
-
-  // Scales the whole sheet on screen; the sizer reserves the scaled size for scrolling
-  function zoomSheet(sizer, paper, z) {
-    paper.style.transform = 'scale(' + z + ')';
-    sizer.style.width  = Math.round(PAPER_W * z) + 'px';
-    sizer.style.height = Math.round(PAPER_H * z) + 'px';
+  // Scales the sheets on screen (or for PDF at z = 1); the sizer reserves the scaled size for scrolling
+  function zoomSheet(sheet, z) {
+    var step = PAPER_H + GAP;
+    sheet.papers.forEach(function (paper, i) {
+      paper.style.transform = 'scale(' + z + ')';
+      paper.style.top = Math.round(i * step * z) + 'px';
+    });
+    sheet.sizer.style.width  = Math.round(PAPER_W * z) + 'px';
+    sheet.sizer.style.height = Math.round((PAPER_H * sheet.papers.length + GAP * (sheet.papers.length - 1)) * z) + 'px';
   }
 
   function escHtml(s) {
@@ -63,10 +76,9 @@
       .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
-  // ── Document markup ────────────────────────────────────────────────────
-  var DOC_HTML =
-    '<table class="fdtr-table">' +
-      '<thead class="fdtr-institution">' +
+  // ── Document markup (split into the two printed pages) ─────────────────
+  // Front page: institution header, name/department, column headers, days 1–15
+  var INST_ROWS =
         '<tr><td colspan="14" class="inst-line">Republic of the Philippines</td></tr>' +
         '<tr><td colspan="14" class="inst-line inst-bold">Mindanao State University</td></tr>' +
         '<tr><td colspan="14" class="inst-line inst-bold inst-large">ILIGAN INSTITUTE OF TECHNOLOGY</td></tr>' +
@@ -78,7 +90,10 @@
         '<tr class="fdtr-bordered">' +
           '<td colspan="8" class="name-dept-cell" data-f="name"></td>' +
           '<td colspan="6" class="name-dept-cell" data-f="dept"></td>' +
-        '</tr>' +
+        '</tr>';
+
+  // Column headers (repeated at the top of the back page)
+  var COL_ROWS =
         '<tr class="fdtr-colheader">' +
           '<th rowspan="2" class="th-day">DAY</th>' +
           '<th colspan="3">CLASS</th>' +
@@ -90,10 +105,10 @@
         '<tr class="fdtr-colheader">' +
           new Array(5).join(
             '<th class="th-sub-col">Time In</th><th class="th-sub-col">Time Out</th><th class="th-sub-col">Hrs</th>') +
-        '</tr>' +
-      '</thead>' +
-      '<tbody data-f="body"></tbody>' +
-      '<tfoot>' +
+        '</tr>';
+
+  // Back page: certification and signatures
+  var FOOT_ROWS =
         '<tr><td colspan="14" class="footer-cert" data-f="cert"></td></tr>' +
         '<tr>' +
           '<td colspan="6" class="footer-sig-cell">' +
@@ -106,12 +121,9 @@
             '<div class="footer-name" data-f="sig-head"></div>' +
             '<div class="footer-label">(Head of Dept./Unit)</div>' +
           '</td>' +
-        '</tr>' +
-      '</tfoot>' +
-    '</table>';
+        '</tr>';
 
-  function renderBody(preview) {
-    var rows = preview.days || [];
+  function renderBody(rows) {
     var html = "";
     for (var i = 0; i < rows.length; i++) {
       var row = rows[i];
@@ -168,18 +180,27 @@
     return html;
   }
 
-  // Fills `container` with the FDTR document for `preview`
-  function renderDoc(container, preview) {
-    container.innerHTML = DOC_HTML;
+  // Fills `container` with one printed page of the FDTR: 'front' (days 1–15) or 'back' (days 16–end)
+  function renderPage(container, preview, part) {
+    var front = part === 'front';
+    container.innerHTML = front
+      ? '<table class="fdtr-table"><thead class="fdtr-institution">' + INST_ROWS + COL_ROWS +
+        '</thead><tbody data-f="body"></tbody></table>'
+      : '<table class="fdtr-table"><thead>' + COL_ROWS +
+        '</thead><tbody data-f="body"></tbody><tfoot>' + FOOT_ROWS + '</tfoot></table>';
+
     var monthLabel = (preview.month_name || "") + " " + (preview.year || "");
     function f(name, text) {
       var el = container.querySelector('[data-f="' + name + '"]');
       if (el) el.textContent = text;
     }
+    var rows = (preview.days || []).filter(function (r) {
+      return front ? r.day <= 15 : r.day >= 16;
+    });
+    container.querySelector('[data-f="body"]').innerHTML = renderBody(rows);
     f("month-line", "For the month of " + monthLabel);
     f("name", "NAME: " + (preview.faculty_name || ""));
     f("dept", "DEPARTMENT: " + (preview.department || ""));
-    container.querySelector('[data-f="body"]').innerHTML = renderBody(preview);
     f("cert", "This certifies upon my honor that the foregoing is a record for services I rendered " +
               "to MSU-Iligan Institute of Technology during the month of " + monthLabel + ".");
     f("sig-name", preview.faculty_name || "");
@@ -277,16 +298,25 @@
 
     loadPdfLibs().then(function () {
       var sheet = mountSheet(host, preview);
-      return window.html2canvas(sheet.paper, {
-        scale: 3.125,                     // 816 px × 3.125 ≈ 300 dpi on 8.5 in
-        backgroundColor: '#ffffff',
-        logging: false,
-        useCORS: true
-      });
-    }).then(function (canvas) {
+      zoomSheet(sheet, 1);
+      // One image per Folio page, in order: front, then back
+      return sheet.papers.reduce(function (chain, paper) {
+        return chain.then(function (list) {
+          return window.html2canvas(paper, {
+            scale: 3.125,                     // 816 px × 3.125 ≈ 300 dpi on 8.5 in
+            backgroundColor: '#ffffff',
+            logging: false,
+            useCORS: true
+          }).then(function (canvas) { list.push(canvas); return list; });
+        });
+      }, Promise.resolve([]));
+    }).then(function (canvases) {
       var JsPDF = window.jspdf.jsPDF;
       var pdf = new JsPDF({ orientation: 'portrait', unit: 'in', format: [8.5, 13], compress: true });
-      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 8.5, 13, undefined, 'FAST');
+      canvases.forEach(function (canvas, i) {
+        if (i > 0) pdf.addPage([8.5, 13], 'portrait');
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 8.5, 13, undefined, 'FAST');
+      });
       pdf.setProperties({
         title: 'FDTR ' + preview.month_name + ' ' + preview.year + ' \u2014 ' + preview.faculty_name,
         creator: 'FDTR Generator'
@@ -372,7 +402,7 @@
   }
 
   // ── Preview window ─────────────────────────────────────────────────────
-  var modal = null, lastFocus = null, zoom = 1, fitMode = true;
+  var modal = null, lastFocus = null, zoom = 1, fitMode = true, curSheet = null;
 
   function open(payload, opts) {
     opts = opts || {};
@@ -393,7 +423,7 @@
           '<div class="pv-head-title">' +
             '<h2 id="pv-title">Check your FDTR</h2>' +
             '<span>' + escHtml(monthLabel) + ' \u00B7 ' + escHtml(preview.faculty_name) +
-              ' \u00B7 <span class="pv-paper-note">Folio, 1 page</span></span>' +
+              ' \u00B7 <span class="pv-paper-note">Folio, back to back</span></span>' +
           '</div>' +
           '<div class="pv-zoom" role="group" aria-label="Zoom">' +
             '<button type="button" data-z="out" aria-label="Zoom out">' + I.minus + '</button>' +
@@ -428,14 +458,14 @@
     document.body.classList.add('pv-open');
 
     var sheet = mountSheet(modal.querySelector('.pv-canvas'), preview);
+    curSheet = sheet;
     modal.querySelector('.pv-paper-note').textContent =
-      'Folio, 1 page' + (sheet.scale < 0.995 ? ' (printed at ' + Math.round(sheet.scale * 100) + '% size)' : '');
+      'Folio, 2 pages back to back' + (sheet.scale < 0.995 ? ' (printed at ' + Math.round(sheet.scale * 100) + '% size)' : '');
 
     // Buttons
     modal.querySelector('.pv-close').addEventListener('click', close);
     modal.querySelector('.pv-edit').addEventListener('click', close);
     modal.querySelector('.pv-print').addEventListener('click', function () { window.print(); });
-    window.addEventListener('beforeprint', onBeforePrint);
     window.addEventListener('afterprint', onAfterPrint);
     function downloaded() {
       modal.querySelector('.pv-done').hidden = false;
@@ -457,7 +487,7 @@
       applyZoom();
     });
     // Click / tap the page: zoom to 100% at that spot, again to fit the window
-    modal.querySelector('.pv-paper').addEventListener('click', function (e) {
+    sheet.papers.forEach(function (paperEl) { paperEl.addEventListener('click', function (e) {
       var canvas = modal.querySelector('.pv-canvas');
       var rect = this.getBoundingClientRect();
       var fx = (e.clientX - rect.left) / rect.width, fy = (e.clientY - rect.top) / rect.height;
@@ -473,7 +503,7 @@
       } else {
         canvas.scrollTop += (r2.top - c2.top + fy * r2.height) - cy;
       }
-    });
+    }); });
 
     // Ctrl/⌘ + mouse wheel zooms the page instead of the whole browser
     modal.querySelector('.pv-canvas').addEventListener('wheel', function (e) {
@@ -494,29 +524,23 @@
 
   function onResize() { if (fitMode) applyZoom(); }
 
-  // Print the sheet at its real size (the record inside is already fitted to one Folio page)
-  function onBeforePrint() {
-    var paper = document.querySelector('.pv-modal .pv-paper');
-    if (paper) paper.style.transform = 'none';
-  }
+  // Print: the two sheets print at their real size (see the print styles)
   function onAfterPrint() {
     if (modal) applyZoom();
   }
 
   // Scale the paper; the sizer reserves the scaled size so scrolling stays correct
   function applyZoom() {
-    if (!modal) return;
+    if (!modal || !curSheet) return;
     var canvas = modal.querySelector('.pv-canvas');
-    var sizer  = modal.querySelector('.pv-sizer');
-    var paper  = modal.querySelector('.pv-paper');
     if (fitMode) {
       var avail = canvas.clientWidth - (canvas.clientWidth < 600 ? 16 : 48);
       zoom = Math.max(0.3, Math.min(1.25, avail / PAPER_W));
     }
-    zoomSheet(sizer, paper, zoom);
+    zoomSheet(curSheet, zoom);
     modal.querySelector('.pv-zoom-val').textContent = Math.round(zoom * 100) + '%';
     modal.querySelector('.pv-fit').classList.toggle('is-active', fitMode);
-    paper.classList.toggle('is-zoomed', !fitMode && zoom >= 0.95);
+    curSheet.papers.forEach(function (p) { p.classList.toggle('is-zoomed', !fitMode && zoom >= 0.95); });
   }
 
   function onKey(e) {
@@ -540,8 +564,8 @@
     modal = null;
     document.body.classList.remove('pv-open');
     window.removeEventListener('resize', onResize);
-    window.removeEventListener('beforeprint', onBeforePrint);
     window.removeEventListener('afterprint', onAfterPrint);
+    curSheet = null;
     if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
   }
 
@@ -563,11 +587,10 @@
     var sheet = mountSheet(docEl, preview);
     function fitWidth() {
       var z = Math.min(1.25, (docEl.clientWidth - 8) / PAPER_W);
-      zoomSheet(sheet.sizer, sheet.paper, z);
+      zoomSheet(sheet, z);
     }
     fitWidth();
     window.addEventListener('resize', fitWidth);
-    window.addEventListener('beforeprint', function () { sheet.paper.style.transform = 'none'; });
     window.addEventListener('afterprint', fitWidth);
     var monthLabel = (preview.month_name || "") + " " + (preview.year || "");
     var sub = document.getElementById("preview-title-sub");
@@ -582,5 +605,5 @@
     });
   });
 
-  window.fdtrPreview = { open: open, close: close, renderDoc: renderDoc };
+  window.fdtrPreview = { open: open, close: close, renderPage: renderPage };
 })();
