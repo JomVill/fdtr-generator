@@ -380,7 +380,9 @@
     for (r = front_last + 1; r <= last_row; r++) back += rowPt(r);
     var widthPx = 0;
     for (var c = 1; c <= 14; c++) widthPx += Math.trunc(ws.getColumn(c).width * 7 + 5);   // column width → px (Calibri 11)
-    var widthPt = widthPx * 0.75;
+    // Excel for Mac draws columns about 6% wider than this estimate (checked in Excel:
+    // the old 92% scale pushed column N onto a third page), so allow for that.
+    var widthPt = widthPx * 0.75 * 1.06;
     var s = Math.min(576 / widthPt, 900 / Math.max(front, back));
     return Math.max(10, Math.floor(s * 100 * 0.98));        // 2% safety margin for Excel's own rounding
   }
@@ -388,11 +390,11 @@
   // Column widths sized so the record fills the 8 in printable width of a Folio page
   // at close to full size when it's split across two pages (days 1–15, days 16–end).
   // Note: exactly 9 is treated as ExcelJS's default and silently dropped, so time
-  // columns use 9.5.
+  // columns use 8.9 (narrow enough for all 14 columns at ~92% on a Mac).
   function _set_column_widths(ws) {
     ws.getColumn("A").width = 5.0;
     ["B","C","E","F","H","I","K","L"].forEach(function (c) {
-      ws.getColumn(c).width = 9.5;
+      ws.getColumn(c).width = 8.9;
     });
     ["D","G","J","M"].forEach(function (c) {
       ws.getColumn(c).width = 5.0;
