@@ -371,19 +371,36 @@
   }
 
   // ── Column widths & row heights ──────────────────────────────────────────
-  // Columns are wide enough that the sheet has the same shape as a Folio page
-  // (8 × 12.5 in printable at 0.25 in margins). Fit-to-one-page then fills the
-  // whole width instead of leaving empty side margins.
+  // Largest whole-percent scale at which both printed pages fit a Folio page
+  // (8.5 × 13 in less 0.25 in margins = 576 × 900 pt).
+  function _two_page_scale(ws, front_last, last_row) {
+    function rowPt(r) { return ws.getRow(r).height || 15; }     // unset rows use Excel's 15 pt default
+    var front = 0, back = 0, r;
+    for (r = 1; r <= front_last; r++) front += rowPt(r);
+    for (r = front_last + 1; r <= last_row; r++) back += rowPt(r);
+    var widthPx = 0;
+    for (var c = 1; c <= 14; c++) widthPx += Math.trunc(ws.getColumn(c).width * 7 + 5);   // column width → px (Calibri 11)
+    var widthPt = widthPx * 0.75;
+    var s = Math.min(576 / widthPt, 900 / Math.max(front, back));
+    return Math.max(10, Math.floor(s * 100 * 0.98));        // 2% safety margin for Excel's own rounding
+  }
+
+  // Column widths sized so the record fills the 8 in printable width of a Folio page
+  // at close to full size when it's split across two pages (days 1–15, days 16–end).
+  // Note: exactly 9 is treated as ExcelJS's default and silently dropped, so time
+  // columns use 9.5.
   function _set_column_widths(ws) {
-    ws.getColumn("A").width = 8.0;
+    ws.getColumn("A").width = 5.0;
     ["B","C","E","F","H","I","K","L"].forEach(function (c) {
-      ws.getColumn(c).width = 17.0;
+      ws.getColumn(c).width = 9.5;
     });
     ["D","G","J","M"].forEach(function (c) {
-      ws.getColumn(c).width = 9.5;   // not 9.0: ExcelJS treats exactly 9 as "default" and drops it
+      ws.getColumn(c).width = 5.0;
     });
-    ws.getColumn("N").width = 11.0;
+    ws.getColumn("N").width = 6.0;
   }
+
+
 
 
   function _set_row_heights(ws, days_in_month) {
@@ -597,14 +614,18 @@
     _set_row_heights(ws, days_in_month);
 
     ws.views = [{ state: "frozen", xSplit: 0, ySplit: 13 }];
-    // Print setup: Folio (8.5 × 13 in, "long bond"), the whole record on exactly one page
+    // Print setup: Folio (8.5 × 13 in), printed back to back as two pages.
+    // Front = header + days 1–15 (rows 1–62); back = days 16–end + signatures (rows 63–123).
     var last_row = SECTION2_DATA + 16 * 3 + 8;     // footer: certification + signatures (row 123)
+    var front_last = SECTION2_HEADER - 1;          // row 62: end of day 15 and its spacer rows
+    ws.getRow(front_last).addPageBreak();          // page 2 starts at the back-page column header
+    // One fixed scale for both pages (fit-to-page can't split a record across two pages).
+    // Sized so the wider page-height of the two always fits the Folio printable area.
     ws.pageSetup = {
       paperSize: 14,                // 14 = Folio 8.5 × 13 in
       orientation: "portrait",
-      fitToPage: true,
-      fitToWidth: 1,
-      fitToHeight: 1,
+      fitToPage: false,
+      scale: _two_page_scale(ws, front_last, last_row),
       printArea: "A1:N" + last_row,
       horizontalCentered: true,
       verticalCentered: false,
