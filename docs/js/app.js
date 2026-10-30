@@ -160,6 +160,76 @@ function restoreProfile() {
 }
 
 /* ── Named schedule presets ─────────────────────────────────────── */
+var SCHEDULES_KIND = 'fdtr-saved-schedules';
+
+// Downloads every saved schedule (not the current week) as one .json file
+function exportPresets() {
+  var presets = getPresets();
+  var names = Object.keys(presets).sort();
+  if (!names.length) { alert('You have no saved schedules yet. Use \u201CSave this week as\u2026\u201D first.'); return; }
+  var schedules = {};
+  names.forEach(function (n) {
+    try { schedules[n] = JSON.parse(presets[n]); } catch (e) {}
+  });
+  var file = {
+    app: 'fdtr-generator',
+    kind: SCHEDULES_KIND,
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    schedules: schedules
+  };
+  var blob = new Blob([JSON.stringify(file, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  var d = new Date();
+  a.href = url;
+  a.download = 'fdtr-saved-schedules-' + d.getFullYear() + '-' +
+               ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  if (window.fdtrData && fdtrData.toast) {
+    fdtrData.toast(names.length + ' saved schedule' + (names.length === 1 ? '' : 's') + ' exported.');
+  }
+}
+
+// Adds the schedules from an export file. Names that already exist get " (2)", " (3)"…
+function importPresetsFile(input) {
+  var file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function () {
+    var parsed;
+    try { parsed = JSON.parse(reader.result); } catch (e) { parsed = null; }
+    var incoming = parsed && parsed.kind === SCHEDULES_KIND && parsed.schedules;
+    if (!incoming || typeof incoming !== 'object') {
+      alert('That file isn\u2019t a saved-schedules file. Use a file exported with \u201CExport\u201D here, or a backup file via \u201CBackup & restore\u201D.');
+      return;
+    }
+    var presets = getPresets();
+    var added = 0, renamed = [];
+    Object.keys(incoming).forEach(function (name) {
+      var sched = incoming[name];
+      if (!sched || typeof sched !== 'object') return;
+      var target = name, n = 2;
+      while (presets[target]) { target = name + ' (' + n + ')'; n++; }
+      if (target !== name) renamed.push(name + ' \u2192 ' + target);
+      presets[target] = JSON.stringify(sched);
+      added++;
+    });
+    if (!added) { alert('No schedules were found in that file.'); return; }
+    lsSet(LS_PRESETS, JSON.stringify(presets));
+    populatePresetSelect();
+    if (window.fdtrData && fdtrData.toast) {
+      fdtrData.toast(added + ' schedule' + (added === 1 ? '' : 's') + ' imported.' +
+                     (renamed.length ? ' Renamed: ' + renamed.join(', ') + '.' : ''));
+    }
+  };
+  reader.readAsText(file);
+}
+
 function getPresets() {
   return lsGetJSON(LS_PRESETS) || {};
 }
@@ -413,6 +483,10 @@ function initSetupPage() {
   if (btnLoad) btnLoad.addEventListener('click', loadPreset);
   if (btnSave) btnSave.addEventListener('click', savePreset);
   if (btnDel)  btnDel.addEventListener('click',  deletePreset);
+  var btnExp = document.getElementById('btn-export-presets');
+  if (btnExp) btnExp.addEventListener('click', exportPresets);
+  var fileIn = document.getElementById('input-import-presets');
+  if (fileIn) fileIn.addEventListener('change', function () { importPresetsFile(this); });
 
   var form = document.getElementById('setup-form');
   if (form) {
